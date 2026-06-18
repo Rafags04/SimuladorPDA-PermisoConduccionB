@@ -1,0 +1,1919 @@
+[
+  {
+    "id": 1,
+    "bloque": "1. Comprobaciones previas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No comprobar correctamente el estado general del vehículo",
+    "obs": "Mandos, neumáticos, luces, niveles, claxon, batería, capó, chaleco, preseñalización y documentación. Se califica con una sola falta leve.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 2,
+    "bloque": "2. Instalación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No adoptar la postura correcta",
+    "obs": "Asiento y posición de conducción antes de iniciar la prueba.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 3,
+    "bloque": "2. Instalación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No regular correctamente los espejos retrovisores",
+    "obs": "Debe hacerse antes de iniciar la marcha.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 4,
+    "bloque": "2. Instalación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar el cinturón de seguridad",
+    "obs": "Una vez calificado, se indica que lo coloque.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 5,
+    "bloque": "2. Instalación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No ajustarse correctamente el cinturón de seguridad",
+    "obs": "Cinturón mal colocado o sin ajustar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 6,
+    "bloque": "3. Incorporación",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar la incorporación obstaculizando a los demás usuarios",
+    "obs": "La falta sube de nivel cuando obliga a otros a modificar su marcha.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 7,
+    "bloque": "3. Incorporación",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Recorrer marcha atrás más de 15 m o invadir un cruce para incorporarse, obstaculizando",
+    "obs": "Si además se obstaculiza, pasa a deficiente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 8,
+    "bloque": "3. Incorporación",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Utilizar inadecuadamente el carril de aceleración, obstaculizando",
+    "obs": "No ajustarse a la velocidad o entrada al carril.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 9,
+    "bloque": "3. Incorporación",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Incorporarse invadiendo sin necesidad el arcén, sentido contrario o carriles contiguos",
+    "obs": "Por mala trayectoria o mala elección del espacio.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 10,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No observar el tráfico delante, detrás y/o lateralmente",
+    "obs": "Mirar antes de iniciar la marcha.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 11,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Omitir la señal reglamentaria",
+    "obs": "No usar intermitente cuando procede.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 12,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Señalizar al contrario",
+    "obs": "Indicar el lado incorrecto.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 13,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Señalizar sin suficiente antelación",
+    "obs": "Intermitente tardío.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 14,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No extinguir la señal una vez finalizada la maniobra",
+    "obs": "Dejar el intermitente puesto más de lo necesario.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 15,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar la incorporación de forma no gradual",
+    "obs": "Entrada brusca o poco progresiva.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 16,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Demorar la incorporación evidenciando inseguridad",
+    "obs": "Cuando las condiciones de distancia y velocidad son idóneas.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 17,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar más movimientos de los necesarios",
+    "obs": "Según el espacio disponible.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 18,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Incorporarse con velocidad inadecuada",
+    "obs": "Por exceso o defecto, según la situación.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 19,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Forzar o golpear fuertemente el bordillo sin llegar a subirlo",
+    "obs": "Si se sube al bordillo puede ser más grave según circunstancias.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 20,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Recorrer marcha atrás más de 15 m o invadir un cruce para incorporarse",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 21,
+    "bloque": "3. Incorporación",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Utilización inadecuada de los carriles de aceleración",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 22,
+    "bloque": "4. Progresión normal",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Reducir peligrosamente la separación lateral con peatones o ciclistas",
+    "obs": "Se valora según separación, velocidad y actitud del peatón/ciclista.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 23,
+    "bloque": "4. Progresión normal",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Circular a velocidad inadecuada por estado de la vía o meteorología causando riesgo o peligro",
+    "obs": "Lluvia intensa, niebla densa, hielo, humo, viento fuerte, etc.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 24,
+    "bloque": "4. Progresión normal",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No adaptarse al ritmo del tráfico o de la vía tras ser invitado a ello",
+    "obs": "Cuando se circula de forma continuada muy por debajo del ritmo posible.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 25,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No circular por el carril derecho cuando sea reglamentario, obstaculizando",
+    "obs": "En vías con varios carriles o situaciones en que debe circularse por la derecha.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 26,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Circular por carril no autorizado para el vehículo, obstaculizando",
+    "obs": "En vías fuera de poblado con tres o más carriles, si procede.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 27,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Mantenerse circulando notablemente próximo a otros vehículos",
+    "obs": "Distancia frontal claramente insuficiente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 28,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Reducir notablemente la separación lateral con peatones, ciclistas o animales",
+    "obs": "Sin llegar a peligro directo.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 29,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Reducir notablemente la separación lateral con otros vehículos u obstáculos",
+    "obs": "Separación lateral insuficiente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 30,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Circular a velocidad anormalmente reducida sin causa justificada, obstaculizando",
+    "obs": "No basta con ir lento: debe obstaculizar.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 31,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Salirse de la calzada donde no exista arcén, sin pérdida de dominio",
+    "obs": "Por circular demasiado próximo al borde.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 32,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No detenerse en túnel o paso inferior lo más lejos posible del vehículo precedente",
+    "obs": "Cuando sea necesario detenerse por la circulación.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 33,
+    "bloque": "4. Progresión normal",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Exceder la velocidad máxima en más de 20 km/h y hasta 30 km/h",
+    "obs": "Criterio general de velocidad máxima.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 34,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No circular por el carril derecho cuando sea reglamentario",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 35,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Mantenerse junto al eje de la calzada en vía de un carril por sentido",
+    "obs": "Cuando debe circularse más centrado en el carril propio/derecha.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 36,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No circular lo más cerca posible del borde derecho en curvas o rasantes de reducida visibilidad",
+    "obs": "En vías de un carril por sentido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 37,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Circular por el arcén parcial o totalmente",
+    "obs": "Salvo supuestos permitidos.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 38,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Circular a velocidad anormalmente reducida sin causa justificada",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 39,
+    "bloque": "4. Progresión normal",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Exceder la velocidad máxima en más de 10 km/h y hasta 20 km/h",
+    "obs": "Criterio general de velocidad máxima.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 40,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Obligar a modificar bruscamente trayectoria o velocidad en paso estrecho sin prioridad",
+    "obs": "Cuando corresponde prioridad a otro vehículo.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 41,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Reducir considerablemente la velocidad sin observar, valorar o advertir",
+    "obs": "Frenada o reducción que afecta al tráfico.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 42,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar el desplazamiento obstaculizando a vehículos por detrás o en sentido contrario",
+    "obs": "Cambio de carril, salida o entrada sin margen suficiente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 43,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No guardar separación frontolateral adecuada con vehículos u obstáculos",
+    "obs": "Durante el desplazamiento lateral.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 44,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No penetrar lo antes posible en carril de deceleración, obstaculizando",
+    "obs": "Entrada tardía al carril de salida.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 45,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No observar el tráfico delante, detrás y/o lateralmente",
+    "obs": "Antes de desplazar el vehículo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 46,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Omitir señal reglamentaria",
+    "obs": "No indicar el desplazamiento.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 47,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Señalizar al contrario",
+    "obs": "Intermitente erróneo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 48,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Señalizar sin suficiente antelación",
+    "obs": "Indicación tardía.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 49,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Señalizar con excesiva antelación",
+    "obs": "Indicación que puede confundir.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 50,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No extinguir la señalización tras la maniobra",
+    "obs": "Intermitente mantenido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 51,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar el desplazamiento de forma brusca",
+    "obs": "Sin peligro ni obstaculización notable.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 52,
+    "bloque": "5. Desplazamientos laterales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No penetrar lo antes posible en carril de deceleración",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 53,
+    "bloque": "6. Adelantamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Adelantar en intersecciones o proximidades sin visibilidad lateral suficiente",
+    "obs": "Especialmente a vehículos de más de dos ruedas.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 54,
+    "bloque": "6. Adelantamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Adelantar obstaculizando a los que circulan en sentido contrario",
+    "obs": "Riesgo directo en sentido contrario.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 55,
+    "bloque": "6. Adelantamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No disminuir la velocidad cuando exista peligro durante el adelantamiento",
+    "obs": "Para evitar riesgo a cualquier usuario.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 56,
+    "bloque": "6. Adelantamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Adelantar sin dejar separación lateral reglamentaria con riesgo",
+    "obs": "Especial atención a ciclistas, peatones y vehículos vulnerables.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 57,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Iniciar el adelantamiento demasiado próximo al vehículo precedente",
+    "obs": "No mantener separación frontal reglamentaria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 58,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Iniciar el adelantamiento demasiado lejos y prolongar innecesariamente, obstaculizando",
+    "obs": "Maniobra demasiado larga.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 59,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Adelantar con lentitud o sin suficiente diferencia de velocidad, obstaculizando",
+    "obs": "No completar con fluidez cuando es posible.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 60,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No intentar el adelantamiento tras ser invitado, evidenciando inseguridad",
+    "obs": "Cuando las circunstancias son idóneas.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 61,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Adelantar obstaculizando a los vehículos del carril contiguo",
+    "obs": "Mala valoración del carril al que se entra.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 62,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Adelantar en pasos de peatones, pasos a nivel, vías ciclistas o túneles cuando esté prohibido",
+    "obs": "Según lugar y riesgo, puede ser eliminatoria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 63,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Iniciar el adelantamiento cuando el precedente ya indicó desplazarse al mismo lado, obstaculizando",
+    "obs": "No respetar la intención del vehículo precedente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 64,
+    "bloque": "6. Adelantamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Demorar excesivamente la vuelta al carril derecho, obstaculizando",
+    "obs": "No regresar tras terminar el adelantamiento.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 65,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Iniciar el adelantamiento demasiado lejos prolongando innecesariamente la maniobra",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 66,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Adelantar con lentitud o sin suficiente diferencia de velocidad",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 67,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No observar tráfico lateral y posterior al adelantar",
+    "obs": "Mirar espejos y ángulo muerto.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 68,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Omitir, señalizar mal o tarde el desplazamiento del adelantamiento",
+    "obs": "Intermitentes en salida o retorno.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 69,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No extinguir la señalización tras el adelantamiento",
+    "obs": "Intermitente mantenido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 70,
+    "bloque": "6. Adelantamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Demorar la vuelta al carril derecho",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 71,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Circular por sentido contrario en intersección o glorieta",
+    "obs": "Dejar a la derecha mediana, refugio, isleta o centro de glorieta.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 72,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Franquear la intersección a velocidad inadecuada",
+    "obs": "Cuando afecta a la seguridad o fluidez.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 73,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No llevar posición adecuada para o durante el franqueo, obstaculizando",
+    "obs": "Mala colocación en carril o trayectoria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 74,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Aproximarse o franquear a velocidad excesivamente reducida sin causa, obstaculizando",
+    "obs": "Exceso de indecisión.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 75,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Detenerse sin necesidad, obstaculizando",
+    "obs": "Parada innecesaria que afecta al tráfico.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 76,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Detenerse rebasada la posición de entrada obstaculizando la circulación transversal",
+    "obs": "Parada dentro de la intersección.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 77,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No detenerse, obstaculizando a vehículo con prioridad",
+    "obs": "Sin llegar a producir peligro eliminatorio.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 78,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No detenerse, obstaculizando a ciclistas con prioridad",
+    "obs": "En carril bici o paso ciclista.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 79,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No detenerse, obstaculizando a peatones o animales con prioridad",
+    "obs": "Cruces de arcén, zona peatonal, cañada, giros a otra vía.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 80,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Al reanudar la marcha, obstaculizar al usuario con prioridad",
+    "obs": "Salida precipitada tras parada.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 81,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No reanudar la marcha en el momento oportuno, obstaculizando",
+    "obs": "Demora excesiva.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 82,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No mantener la señalización durante el giro o maniobra",
+    "obs": "Intermitente que se apaga o no se mantiene.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 83,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No extinguir la señalización al finalizar",
+    "obs": "Intermitente mantenido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 84,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No llevar la posición adecuada para o durante el franqueo",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 85,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Aproximarse o franquear a velocidad excesivamente reducida sin causa",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 86,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Aproximarse a velocidad inadecuada",
+    "obs": "Defecto de anticipación.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 87,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Detenerse súbitamente ante semáforo, stop, ceda, etc.",
+    "obs": "Por no anticipar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 88,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Detenerse antes de alcanzar la zona de máxima visibilidad posible",
+    "obs": "Cuando no permite valorar correctamente.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 89,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Detenerse sin necesidad",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 90,
+    "bloque": "7. Intersecciones y glorietas",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No reanudar la marcha en el momento oportuno",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 91,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Realizar hacia atrás tres o más movimientos de los necesarios",
+    "obs": "Según espacio disponible.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 92,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar la maniobra en lugar prohibido por norma, obstaculizando",
+    "obs": "Lugar no permitido y afecta al tráfico.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 93,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar la maniobra obstaculizando la circulación",
+    "obs": "Aunque el lugar pudiera ser válido.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 94,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar hacia atrás dos movimientos más de los necesarios",
+    "obs": "Según espacio disponible.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 95,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No observar el tráfico delante, detrás y/o lateralmente",
+    "obs": "Antes y durante la maniobra.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 96,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Omitir, señalizar al contrario, tarde o con excesiva antelación",
+    "obs": "Uso incorrecto de intermitentes.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 97,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No extinguir la señalización al terminar",
+    "obs": "Intermitente mantenido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 98,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar la maniobra en lugar prohibido por norma",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 99,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar hacia atrás un movimiento más de los necesarios",
+    "obs": "Según espacio disponible.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 100,
+    "bloque": "8. Cambio de sentido",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Forzar o golpear fuertemente el bordillo sin llegar a subirlo",
+    "obs": "En cambio de sentido.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 101,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Dejar el vehículo estacionado sobresaliendo más de la mitad respecto a la alineación",
+    "obs": "Respecto a otros vehículos o marcas de estacionamiento.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 102,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "En batería, sobresalir más de un metro invadiendo zona de circulación",
+    "obs": "Especialmente en estacionamiento en batería.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 103,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Realizar parada o estacionamiento en lugar prohibido, obstaculizando",
+    "obs": "Lugar incorrecto y afectación a otros.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 104,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Obstaculizar durante la ejecución de parada o estacionamiento",
+    "obs": "Maniobra que dificulta la circulación.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 105,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Dejar el vehículo sobresaliendo menos de la mitad de la alineación",
+    "obs": "Deficiente si la colocación afecta.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 106,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No observar tráfico delante, detrás y/o lateralmente",
+    "obs": "Antes de iniciar o finalizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 107,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Omitir, señalizar al contrario, tarde o demasiado pronto",
+    "obs": "Intermitente de parada/estacionamiento.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 108,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar la maniobra en lugar prohibido por norma",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 109,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Seleccionar un espacio claramente inferior a la longitud del vehículo",
+    "obs": "Cuando se entra totalmente con la parte posterior.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 110,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Superar el tiempo máximo de 2 minutos en estacionamiento",
+    "obs": "Criterio de duración de la maniobra.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 111,
+    "bloque": "9. Paradas y estacionamientos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No accionar el freno de estacionamiento al finalizar",
+    "obs": "Si procede por seguridad.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 112,
+    "bloque": "11. Señales: agentes y paneles",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No respetar señal de agente de circulación",
+    "obs": "También señales de policía militar, protección civil u obras.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 113,
+    "bloque": "11. Señales: agentes y paneles",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Detenerse o demorar reanudación cuando el agente permite el paso",
+    "obs": "Si afecta al tráfico.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 114,
+    "bloque": "11. Señales: agentes y paneles",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Incumplir señales de reglamentación en panel variable",
+    "obs": "Aplicando criterio de señal vertical.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 115,
+    "bloque": "11. Semáforos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No respetar semáforo en rojo",
+    "obs": "Aunque no se invada completamente si se pierde la visión de la luz o se penetra en la intersección.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 116,
+    "bloque": "11. Semáforos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No respetar luz roja intermitente o dos rojas alternas",
+    "obs": "No detenerse ante ellas.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 117,
+    "bloque": "11. Semáforos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No respetar semáforo con franja blanca horizontal",
+    "obs": "Señal de detención para vehículos afectados.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 118,
+    "bloque": "11. Semáforos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Ocupar o no abandonar carril con aspa roja",
+    "obs": "Carril cerrado.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 119,
+    "bloque": "11. Semáforos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Detenerse o no reanudar ante franja blanca vertical u oblicua, obstaculizando",
+    "obs": "Cuando las circunstancias permiten continuar.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 120,
+    "bloque": "11. Semáforos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Rebasar dispositivo delimitador móvil en movimiento sin causar peligro",
+    "obs": "Con peligro sería eliminatoria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 121,
+    "bloque": "11. Semáforos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No ceder al seguir flecha verde de semáforo circular",
+    "obs": "Vehículos del carril al que se incorpora o peatones.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 122,
+    "bloque": "11. Semáforos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Detenerse sin necesidad o no reanudar en verde/amarillo intermitente, obstaculizando",
+    "obs": "Cuando puede continuar.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 123,
+    "bloque": "11. Semáforos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No seguir dirección de flecha verde sobre fondo negro, obstaculizando",
+    "obs": "Especialmente si se incumple selección de carril.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 124,
+    "bloque": "11. Semáforos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Rebasar semáforo amarillo fijo pudiendo detenerse con seguridad",
+    "obs": "No confundir con amarillo intermitente.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 125,
+    "bloque": "11. Semáforos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Rebasar franja blanca vertical u oblicua intermitente pudiendo detenerse con seguridad",
+    "obs": "Cuando proceda detenerse.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 126,
+    "bloque": "11. Semáforos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Detenerse sin necesidad o no reanudar en verde/amarillo intermitente",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 127,
+    "bloque": "11. Señales verticales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Incumplir CEDA EL PASO, STOP o prioridad en sentido contrario",
+    "obs": "Si implica el incumplimiento principal de prioridad.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 128,
+    "bloque": "11. Señales verticales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Incumplir circulación prohibida o entrada prohibida",
+    "obs": "Entrada en vía no permitida.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 129,
+    "bloque": "11. Señales verticales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Incumplir restricción de paso u otras prohibiciones/restricciones",
+    "obs": "Cuando tiene consideración grave según criterio DGT.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 130,
+    "bloque": "11. Señales verticales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Exceder la velocidad máxima en más de 30 km/h",
+    "obs": "Velocidad máxima señalizada.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 131,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No hacer uso de la preferencia ante señal de prioridad, obstaculizando",
+    "obs": "Por ejemplo no avanzar cuando se tiene prioridad y se dificulta la circulación.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 132,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Exceder la velocidad máxima en más de 20 km/h y hasta 30 km/h",
+    "obs": "Velocidad máxima señalizada.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 133,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No moderar la velocidad ante luz amarilla intermitente",
+    "obs": "O dos luces amarillas alternas.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 134,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Incumplir señales de obligación",
+    "obs": "Tras ser requerido, no cumplir pudiendo hacerlo puede ser eliminatoria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 135,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No respetar vía reservada a ciclos, VMP o carril reservado",
+    "obs": "Según señalización de la vía.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 136,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Incumplir velocidad mínima",
+    "obs": "Si afecta a la circulación.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 137,
+    "bloque": "11. Señales verticales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Obstaculizar peatones en calle residencial, zona 30 o zona de coexistencia",
+    "obs": "Donde la señal está instalada.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 138,
+    "bloque": "11. Señales verticales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Exceder la velocidad máxima en más de 10 km/h y hasta 20 km/h",
+    "obs": "Velocidad máxima señalizada.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 139,
+    "bloque": "11. Señales verticales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Incumplir advertencias acústicas prohibidas",
+    "obs": "Uso indebido del claxon.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 140,
+    "bloque": "11. Marcas viales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Circular parcial o totalmente por la izquierda de línea continua que separa sentidos opuestos",
+    "obs": "Invadir sentido contrario.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 141,
+    "bloque": "11. Marcas viales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Atravesar línea continua que separa sentidos opuestos",
+    "obs": "Cruzar la marca vial prohibida.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 142,
+    "bloque": "11. Marcas viales",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No dejar pasar a peatones o ciclistas que ya cruzan en pasos señalizados",
+    "obs": "Paso de peatones, carril bici o paso ciclista.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 143,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Atravesar o circular sobre línea continua que separa carriles del mismo sentido",
+    "obs": "Sin llegar a eliminatoria por sentido contrario.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 144,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Circular sobre líneas discontinuas obstaculizando",
+    "obs": "Uso indebido de marcas discontinuas.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 145,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Obstaculizar a peatones o ciclistas que esperan o cruzan en pasos señalizados",
+    "obs": "Si no llega a eliminatoria.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 146,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No seguir dirección indicada por una señal de orientación",
+    "obs": "Por no observar adecuadamente.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 147,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No seguir flecha de selección de carriles",
+    "obs": "La DGT lo recoge en marcas/inscripciones.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 148,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Entrar en cebreado que separa carriles",
+    "obs": "Según el cebreado y la situación.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 149,
+    "bloque": "11. Marcas viales",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No respetar cuadrícula amarilla cuando previsiblemente se queda inmovilizado obstaculizando",
+    "obs": "Bloquear intersección o zona marcada.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 150,
+    "bloque": "11. Marcas viales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Circular sobre líneas discontinuas",
+    "obs": "Sin obstaculizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 151,
+    "bloque": "11. Marcas viales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Detenerse sin justificación sobre paso para peatones o ciclistas",
+    "obs": "Sin obstaculización grave.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 152,
+    "bloque": "11. Marcas viales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Rebasar línea transversal de detención continua o discontinua",
+    "obs": "En stop, ceda, semáforo, etc.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 153,
+    "bloque": "11. Marcas viales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Exceder señal de velocidad en más de 10 km/h y hasta 20 km/h",
+    "obs": "Cuando se valora por marca/señal.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 154,
+    "bloque": "11. Marcas viales",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No respetar cuadrícula amarilla sin obstaculizar",
+    "obs": "Entrar pudiendo quedar inmovilizado.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 155,
+    "bloque": "12. Luces",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Circular sin alumbrado en condiciones de notable falta de visibilidad",
+    "obs": "Conducción negligente por no llevar luces.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 156,
+    "bloque": "12. Luces",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Usar alumbrado produciendo deslumbramiento y causando peligro",
+    "obs": "Especialmente carretera/larga.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 157,
+    "bloque": "12. Luces",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No utilizar antiniebla trasera obligatoria causando peligro",
+    "obs": "Falta o disminución de visibilidad.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 158,
+    "bloque": "12. Luces",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No activar luces tras ser indicado después de falta leve",
+    "obs": "Por desconocimiento del mando.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 159,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar alumbrado cuando es obligatorio",
+    "obs": "El examinador puede indicar que lo encienda; si no sabe, puede ser E.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 160,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No activar manualmente luces automáticas cuando no se activan y son imprescindibles",
+    "obs": "Con falta de visibilidad.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 161,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar luz de cruce cuando es obligatoria",
+    "obs": "Supuestos reglamentarios.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 162,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Utilizar luz de carretera cuando está prohibido o deslumbrando sin peligro",
+    "obs": "Sin llegar a riesgo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 163,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar antiniebla cuando corresponde",
+    "obs": "Según condiciones.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 164,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Usar antiniebla trasera cuando no corresponde",
+    "obs": "Sin condiciones reglamentarias.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 165,
+    "bloque": "12. Luces",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar luces de emergencia cuando son obligatorias",
+    "obs": "O utilizarlas cuando no procede.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 166,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Confusión de pedal con peligro",
+    "obs": "Si concurren circunstancias de peligro.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 167,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Dejar caer el vehículo más de 50 cm en sentido contrario al pretendido con riesgo",
+    "obs": "En pendientes o salidas.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 168,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No desactivar el freno de estacionamiento afectando ostensiblemente a la marcha",
+    "obs": "Ruedas frenadas, calados sucesivos o dificultad clara.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 169,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Soltar momentáneamente las dos manos del volante sin pérdida de dominio",
+    "obs": "Sin llegar a perder el control.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 170,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "Dejar caer el vehículo más de 50 cm en sentido contrario al pretendido",
+    "obs": "Según velocidad o espacio.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 171,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No conseguir el encendido del motor",
+    "obs": "Tras margen suficiente, se indica cómo hacerlo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 172,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Accionar la puesta en marcha con una velocidad seleccionada provocando salto",
+    "obs": "Mala preparación del arranque.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 173,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Insistir en la puesta en marcha con el motor ya funcionando",
+    "obs": "Mal uso del contacto/arranque.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 174,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No apagar el motor cuando sea reglamentario",
+    "obs": "Al finalizar o en supuestos necesarios.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 175,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Desembragar sin justificación",
+    "obs": "Uso incorrecto del embrague.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 176,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Frenar de forma brusca por no anticipar",
+    "obs": "En permiso B se valora generalmente como leve salvo peligro.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 177,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No usar acelerador con progresividad, suavidad y decisión",
+    "obs": "Aceleraciones pobres o bruscas.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 178,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No usar relación de marcha adecuada según velocidad, tráfico o vía",
+    "obs": "Marcha demasiado larga/corta.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 179,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Poner punto muerto antes de detenerse sin aprovechar retención del motor",
+    "obs": "Mala técnica de conducción.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 180,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No usar marcha adecuada en descensos prolongados para que el motor actúe como freno",
+    "obs": "En turismos se valora como leve según criterio.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 181,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Calado del motor por no seleccionar relación adecuada",
+    "obs": "Una falta leve por cada calado.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 182,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No desactivar freno de estacionamiento aunque no afecte a la marcha",
+    "obs": "Se indica que lo desactive.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 183,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Calados por no desactivar freno de estacionamiento",
+    "obs": "Se anotan y se indica si se repiten.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 184,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Sujeción con una sola mano sin justificación",
+    "obs": "Mano fuera del volante sin necesidad.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 185,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Ligeras desviaciones de trayectoria",
+    "obs": "Con ambas manos o al cambiar de marcha.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 186,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Giro brusco del volante por no anticipar la trayectoria",
+    "obs": "Manejo brusco.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 187,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Mantener las manos cruzadas durante un giro o coger el volante por el interior",
+    "obs": "Estando el vehículo en movimiento.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 188,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No realizar conducción eficiente durante la prueba",
+    "obs": "Se anota una sola vez al finalizar.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 189,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Usar embrague antes que freno o simultáneamente sin necesidad",
+    "obs": "Operación combinada incorrecta.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 190,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Calado del motor",
+    "obs": "Una falta leve por cada calado.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 191,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Aceleraciones en vacío",
+    "obs": "Según revoluciones.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 192,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Arranque brusco o a saltos",
+    "obs": "En permiso B, generalmente leve salvo riesgo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 193,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Realizar cambios con brusquedad",
+    "obs": "En permiso B, generalmente leve salvo riesgo.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 194,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Rascar o tener dificultad al introducir marcha por mal uso del embrague",
+    "obs": "Error de coordinación.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 195,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Reducir a marcha inferior y no soltar embrague",
+    "obs": "Mala operación embrague/cambio.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 196,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Desembragar en curva o cambio de dirección",
+    "obs": "Según velocidad y trazado puede subir.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 197,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Frenar en curva sin necesidad",
+    "obs": "Según velocidad y trazado puede subir.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 198,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Mantener acelerador accionado al cambiar de marcha",
+    "obs": "Mala coordinación.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 199,
+    "bloque": "13. Manejo de mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No revolucionar suficiente al cambiar a marchas largas, produciendo traqueteo",
+    "obs": "Mala relación marcha/velocidad.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 200,
+    "bloque": "14. Otros mandos",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Desconocer mando imprescindible por visibilidad o seguridad tras indicación",
+    "obs": "Luces, limpia, desempañado, dispositivos de seguridad.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 201,
+    "bloque": "14. Otros mandos",
+    "tipo": "D",
+    "nivel": "Deficiente",
+    "falta": "No desactivar freno eléctrico afectando ostensiblemente a la marcha",
+    "obs": "Si el vehículo lo equipa.",
+    "ejemplo": "Anotar si obstaculiza o dificulta notablemente la circulación."
+  },
+  {
+    "id": 202,
+    "bloque": "14. Otros mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No utilizar limpiaparabrisas cuando sea necesario",
+    "obs": "Si el sistema automático no actúa, debe activarlo manualmente.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 203,
+    "bloque": "14. Otros mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Usar señales acústicas de forma antirreglamentaria",
+    "obs": "Claxon sin causa reglamentaria.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 204,
+    "bloque": "14. Otros mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Iniciar la marcha con una puerta abierta o mal cerrada",
+    "obs": "Tras advertencia en el cuadro/instrumentos.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 205,
+    "bloque": "14. Otros mandos",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "No usar sistemas de desempañado o protección frente al deslumbramiento cuando es necesario",
+    "obs": "Parasol, luneta, ventilación, desempañado.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 206,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Golpear a personas, animales, vehículos o elementos",
+    "obs": "Accidente imputable al aspirante.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 207,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Crear riesgo cierto y relevante que obliga a otros a modificar bruscamente trayectoria o velocidad",
+    "obs": "Maniobra o actuación evasiva de otro usuario.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 208,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Invadir sentido contrario en lugar o circunstancias de reducida visibilidad",
+    "obs": "Giro o circulación con falta de visibilidad.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 209,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Perder el dominio del vehículo",
+    "obs": "No controlar la trayectoria en relación con la velocidad.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 210,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Intervención del profesor o sistema AEB por causa imputable al aspirante",
+    "obs": "Acción directa sobre mandos o frenado de emergencia.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 211,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "Subir al bordillo con alguna rueda",
+    "obs": "Excepto supuestos de bordillo rebajado/poca altura en maniobras; en turismo con rueda posterior puede ser leve.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  },
+  {
+    "id": 212,
+    "bloque": "15. Durante la prueba",
+    "tipo": "L",
+    "nivel": "Leve",
+    "falta": "Subir al bordillo con la rueda posterior de un turismo",
+    "obs": "Criterio específico de la DGT.",
+    "ejemplo": "Anotar como error menor si no hay peligro ni obstaculización notable."
+  },
+  {
+    "id": 213,
+    "bloque": "15. Durante la prueba",
+    "tipo": "E",
+    "nivel": "Eliminatoria",
+    "falta": "No seguir reiteradamente las indicaciones del examinador",
+    "obs": "Se entiende reiterado cuando, advertido cada vez, sucede al menos tres veces.",
+    "ejemplo": "Anotar si genera peligro, incumplimiento grave/muy grave o intervención."
+  }
+]
