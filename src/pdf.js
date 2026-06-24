@@ -89,6 +89,46 @@ export function downloadSimulationPdf(simulation, catalogById) {
     y += 3;
   }
 
+  const timers = simulation.timers || {};
+  const examElapsed = effectiveElapsed(timers.exam);
+  const parkingElapsed = effectiveElapsed(timers.parking);
+  const countdownRemaining = effectiveRemaining(timers.countdown);
+  const timeRecords = timers.parking?.records || [];
+  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timeRecords.length;
+
+  if (hasTimes) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('Tiempos', margin, y);
+    y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Cronómetro examen: ${formatMs(examElapsed)}`, margin, y);
+    y += 5;
+    doc.text(`${timers.parking?.label || 'Maniobra'}: ${formatMs(parkingElapsed)}`, margin, y);
+    y += 5;
+    if (timers.countdown) {
+      doc.text(`Temporizador restante: ${formatMs(countdownRemaining)}`, margin, y);
+      y += 5;
+    }
+    if (timeRecords.length) {
+      y += 2;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tiempos guardados:', margin, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      timeRecords.forEach((record) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 18;
+        }
+        doc.text(`- ${record.label || 'Maniobra'}: ${formatMs(record.elapsedMs)}`, margin + 4, y);
+        y += 5;
+      });
+    }
+    y += 4;
+  }
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.text('Faltas marcadas', margin, y);

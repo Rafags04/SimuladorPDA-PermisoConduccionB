@@ -34,6 +34,82 @@ const state = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+const DEFAULT_COUNTDOWN_MINUTES = 25;
+
+function defaultTimers() {
+  return {
+    exam: {
+      label: 'Examen completo',
+      elapsedMs: 0,
+      running: false,
+      startedAt: null
+    },
+    parking: {
+      label: 'Aparcamiento',
+      elapsedMs: 0,
+      running: false,
+      startedAt: null,
+      records: []
+    },
+    countdown: {
+      label: 'Examen temporizado',
+      durationMs: DEFAULT_COUNTDOWN_MINUTES * 60 * 1000,
+      remainingMs: DEFAULT_COUNTDOWN_MINUTES * 60 * 1000,
+      running: false,
+      startedAt: null,
+      endedAt: null
+    }
+  };
+}
+
+function ensureSimulationShape(simulation) {
+  if (!simulation) return simulation;
+  const defaults = defaultTimers();
+  simulation.timers = simulation.timers || {};
+  simulation.timers.exam = { ...defaults.exam, ...(simulation.timers.exam || {}) };
+  simulation.timers.parking = { ...defaults.parking, ...(simulation.timers.parking || {}) };
+  simulation.timers.parking.records = Array.isArray(simulation.timers.parking.records) ? simulation.timers.parking.records : [];
+  simulation.timers.countdown = { ...defaults.countdown, ...(simulation.timers.countdown || {}) };
+  if (!Number.isFinite(simulation.timers.countdown.durationMs) || simulation.timers.countdown.durationMs <= 0) {
+    simulation.timers.countdown.durationMs = defaults.countdown.durationMs;
+  }
+  if (!Number.isFinite(simulation.timers.countdown.remainingMs)) {
+    simulation.timers.countdown.remainingMs = simulation.timers.countdown.durationMs;
+  }
+  return simulation;
+}
+
+function currentTimestamp() {
+  return Date.now();
+}
+
+function effectiveElapsed(timer) {
+  const base = Number(timer?.elapsedMs || 0);
+  if (!timer?.running || !timer.startedAt) return base;
+  return Math.max(0, base + (currentTimestamp() - Number(timer.startedAt)));
+}
+
+function effectiveRemaining(timer) {
+  const base = Number(timer?.remainingMs ?? timer?.durationMs ?? 0);
+  if (!timer?.running || !timer.startedAt) return Math.max(0, base);
+  return Math.max(0, base - (currentTimestamp() - Number(timer.startedAt)));
+}
+
+function formatMs(ms) {
+  const totalSeconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  if (hours > 0) return `${hours}:${mm}:${ss}`;
+  return `${mm}:${ss}`;
+}
+
+function countdownMinutes(timer) {
+  return Math.max(1, Math.round(Number(timer?.durationMs || DEFAULT_COUNTDOWN_MINUTES * 60 * 1000) / 60000));
+}
+
 function emptySimulation() {
   const now = new Date().toISOString();
   return {
@@ -45,6 +121,7 @@ function emptySimulation() {
     vehicle: '',
     generalNotes: '',
     faults: [],
+    timers: defaultTimers(),
     status: 'draft',
     createdAt: now,
     updatedAt: now
@@ -95,11 +172,33 @@ function setToast(message) {
 
 async function persistCurrent() {
   if (!state.current) return;
+  ensureSimulationShape(state.current);
   state.current.updatedAt = nowIso();
   await putSimulation(state.current);
   await putSetting('currentSimulationId', state.current.id);
   state.history = await listSimulations();
 }
+
+let persistDebounceTimer;
+function schedulePersistCurrent(delay = 350) {
+  window.clearTimeout(persistDebounceTimer);
+  persistDebounceTimer = window.setTimeout(() => {
+    persistCurrent().catch((error) => console.warn('No se pudo guardar automáticamente', error));
+  }, delay);
+}
+
+function updateHeaderSnapshot() {
+  if (!state.current) return;
+  const title = state.current.studentName?.trim() || 'Nueva simulación';
+  const subtitle = [state.current.zone, fmtDate(state.current.date)].filter(Boolean).join(' · ') || 'Datos guardados en este dispositivo';
+  const headerTitle = document.querySelector('.app-header h1');
+  const headerSubtitle = document.querySelector('.header-subtitle');
+  const heroTitle = document.querySelector('.hero-card h2');
+  if (headerTitle) headerTitle.textContent = title;
+  if (headerSubtitle) headerSubtitle.textContent = subtitle;
+  if (heroTitle) heroTitle.textContent = state.current.studentName || 'Sin alumno asignado';
+}
+
 
 function calculateCurrent() {
   return evaluateSimulation(state.current?.faults || []);
@@ -179,6 +278,105 @@ function bottomNav() {
   `;
 }
 
+
+function timeRecordsHtml(records = []) {
+  if (!records.length) return '<p class="muted no-margin">No hay tiempos guardados todavía.</p>';
+  return `
+    <div class="time-records">
+      ${records.map((record) => `
+        <article class="time-record">
+          <div>
+            <strong>${esc(record.label || 'Maniobra')}</strong>
+            <span>${fmtDate(record.createdAt || record.date)} · ${esc(record.note || '')}</span>
+          </div>
+          <div class="time-record-value">${formatMs(record.elapsedMs)}</div>
+          <button class="ghost-button danger" data-action="remove-time-record" data-id="${esc(record.id)}">Borrar</button>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function timersCard() {
+  ensureSimulationShape(state.current);
+  const timers = state.current.timers;
+  const exam = timers.exam;
+  const parking = timers.parking;
+  const countdown = timers.countdown;
+  const countdownFinished = effectiveRemaining(countdown) <= 0 && !countdown.running;
+  return `
+    <section class="card timers-card">
+      <div class="section-head">
+        <div>
+          <h2>Cronómetros y temporizadores</h2>
+          <p class="muted">Para controlar la duración del examen y medir maniobras como aparcamiento.</p>
+        </div>
+      </div>
+
+      <div class="timer-grid">
+        <article class="timer-panel">
+          <div class="timer-title">
+            <strong>Cronómetro del examen</strong>
+            <span>${exam.running ? 'En marcha' : 'Pausado'}</span>
+          </div>
+          <div class="timer-value" data-timer-display="elapsed:exam">${formatMs(effectiveElapsed(exam))}</div>
+          <div class="timer-actions">
+            <button class="primary" data-action="timer-start" data-timer="exam">Iniciar</button>
+            <button class="secondary" data-action="timer-pause" data-timer="exam">Pausar</button>
+            <button class="ghost-button" data-action="timer-reset" data-timer="exam">Reiniciar</button>
+          </div>
+        </article>
+
+        <article class="timer-panel">
+          <div class="timer-title">
+            <strong>Cronómetro de maniobra</strong>
+            <span>${parking.running ? 'En marcha' : 'Pausado'}</span>
+          </div>
+          <label class="compact-label">Nombre de la maniobra
+            <input data-timer-input="parkingLabel" value="${esc(parking.label || 'Aparcamiento')}" placeholder="Ej.: Aparcamiento, cambio de sentido..." autocomplete="off" />
+          </label>
+          <div class="timer-value" data-timer-display="elapsed:parking">${formatMs(effectiveElapsed(parking))}</div>
+          <div class="timer-actions">
+            <button class="primary" data-action="timer-start" data-timer="parking">Iniciar</button>
+            <button class="secondary" data-action="timer-pause" data-timer="parking">Pausar</button>
+            <button class="ghost-button" data-action="timer-reset" data-timer="parking">Reiniciar</button>
+            <button class="primary light" data-action="timer-save-record">Guardar tiempo</button>
+          </div>
+        </article>
+
+        <article class="timer-panel timer-panel-wide ${countdownFinished ? 'timer-finished' : ''}">
+          <div class="timer-title">
+            <strong>Temporizador</strong>
+            <span>${countdown.running ? 'Cuenta atrás' : countdownFinished ? 'Finalizado' : 'Preparado'}</span>
+          </div>
+          <div class="countdown-settings">
+            <label class="compact-label">Minutos
+              <input type="number" min="1" max="180" step="1" data-timer-input="countdownMinutes" value="${countdownMinutes(countdown)}" />
+            </label>
+            <div class="preset-row">
+              <button class="pill small" data-action="set-countdown" data-minutes="20">20 min</button>
+              <button class="pill small" data-action="set-countdown" data-minutes="25">25 min</button>
+              <button class="pill small" data-action="set-countdown" data-minutes="30">30 min</button>
+              <button class="pill small" data-action="set-countdown" data-minutes="45">45 min</button>
+            </div>
+          </div>
+          <div class="timer-value" data-timer-display="remaining:countdown">${formatMs(effectiveRemaining(countdown))}</div>
+          <div class="timer-actions">
+            <button class="primary" data-action="countdown-start">Iniciar</button>
+            <button class="secondary" data-action="countdown-pause">Pausar</button>
+            <button class="ghost-button" data-action="countdown-reset">Reiniciar</button>
+          </div>
+        </article>
+      </div>
+
+      <details class="time-records-box" ${parking.records.length ? 'open' : ''}>
+        <summary>Tiempos guardados <b>${parking.records.length}</b></summary>
+        ${timeRecordsHtml(parking.records)}
+      </details>
+    </section>
+  `;
+}
+
 function simulationView() {
   const sim = state.current;
   const result = calculateCurrent();
@@ -220,6 +418,8 @@ function simulationView() {
           <textarea data-field="generalNotes" placeholder="Comentarios generales de la simulación">${esc(sim.generalNotes)}</textarea>
         </label>
       </section>
+
+      ${timersCard()}
 
       <section class="card quick-actions">
         <button class="primary big" data-action="tab" data-tab="faults">＋ Añadir falta</button>
@@ -310,6 +510,28 @@ function summaryItem(item, index) {
   `;
 }
 
+
+function summaryTimesCard() {
+  ensureSimulationShape(state.current);
+  const timers = state.current.timers;
+  const examElapsed = effectiveElapsed(timers.exam);
+  const parkingElapsed = effectiveElapsed(timers.parking);
+  const countdownRemainingValue = effectiveRemaining(timers.countdown);
+  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timers.parking.records.length;
+  if (!hasTimes) return '';
+  return `
+    <section class="card">
+      <h2>Tiempos</h2>
+      <div class="time-summary-grid">
+        <div class="kpi"><b data-timer-display="elapsed:exam">${formatMs(examElapsed)}</b><span>Examen</span></div>
+        <div class="kpi"><b data-timer-display="elapsed:parking">${formatMs(parkingElapsed)}</b><span>${esc(timers.parking.label || 'Maniobra')}</span></div>
+        <div class="kpi"><b data-timer-display="remaining:countdown">${formatMs(countdownRemainingValue)}</b><span>Temporizador</span></div>
+      </div>
+      ${timers.parking.records.length ? `<h3 class="subheading">Tiempos guardados</h3>${timeRecordsHtml(timers.parking.records)}` : ''}
+    </section>
+  `;
+}
+
 function summaryView() {
   const sim = state.current;
   const result = evaluateSimulation(sim.faults || []);
@@ -327,6 +549,8 @@ function summaryView() {
         <button class="secondary" data-action="export-json">Copia JSON</button>
         <button class="secondary" data-action="finalize">Marcar como finalizada</button>
       </section>
+
+      ${summaryTimesCard()}
 
       <section class="card">
         <h2>Faltas marcadas</h2>
@@ -459,12 +683,157 @@ function render() {
   `;
 }
 
-async function updateField(target) {
+async function updateField(target, { immediate = false } = {}) {
   const field = target.dataset.field;
   if (!field || !state.current) return;
   state.current[field] = target.value;
+  if (['studentName', 'date', 'zone'].includes(field)) updateHeaderSnapshot();
+  if (immediate) await persistCurrent();
+  else schedulePersistCurrent();
+}
+
+function timerObject(key) {
+  ensureSimulationShape(state.current);
+  return state.current?.timers?.[key];
+}
+
+async function startStopwatch(key) {
+  const timer = timerObject(key);
+  if (!timer || timer.running) return;
+  timer.running = true;
+  timer.startedAt = currentTimestamp();
   await persistCurrent();
-  if (['studentName', 'date', 'zone'].includes(field)) render();
+  render();
+}
+
+async function pauseStopwatch(key) {
+  const timer = timerObject(key);
+  if (!timer) return;
+  timer.elapsedMs = effectiveElapsed(timer);
+  timer.running = false;
+  timer.startedAt = null;
+  await persistCurrent();
+  render();
+}
+
+async function resetStopwatch(key) {
+  const timer = timerObject(key);
+  if (!timer) return;
+  timer.elapsedMs = 0;
+  timer.running = false;
+  timer.startedAt = null;
+  await persistCurrent();
+  render();
+}
+
+async function saveParkingRecord() {
+  const timer = timerObject('parking');
+  if (!timer) return;
+  const elapsedMs = effectiveElapsed(timer);
+  if (elapsedMs < 1000) {
+    setToast('No hay tiempo suficiente para guardar');
+    return;
+  }
+  timer.records.unshift({
+    id: makeId('time'),
+    label: timer.label || 'Maniobra',
+    elapsedMs,
+    createdAt: nowIso()
+  });
+  timer.elapsedMs = 0;
+  timer.running = false;
+  timer.startedAt = null;
+  await persistCurrent();
+  setToast('Tiempo guardado');
+}
+
+async function removeTimeRecord(id) {
+  const timer = timerObject('parking');
+  if (!timer) return;
+  timer.records = timer.records.filter((record) => record.id !== id);
+  await persistCurrent();
+  render();
+}
+
+function applyCountdownDuration(minutes) {
+  const countdown = timerObject('countdown');
+  if (!countdown) return;
+  const safeMinutes = Math.min(180, Math.max(1, Number(minutes) || DEFAULT_COUNTDOWN_MINUTES));
+  countdown.durationMs = safeMinutes * 60 * 1000;
+  countdown.remainingMs = countdown.durationMs;
+  countdown.running = false;
+  countdown.startedAt = null;
+  countdown.endedAt = null;
+}
+
+async function startCountdown() {
+  const countdown = timerObject('countdown');
+  if (!countdown || countdown.running) return;
+  if (effectiveRemaining(countdown) <= 0) {
+    countdown.remainingMs = countdown.durationMs;
+  }
+  countdown.running = true;
+  countdown.startedAt = currentTimestamp();
+  countdown.endedAt = null;
+  await persistCurrent();
+  render();
+}
+
+async function pauseCountdown() {
+  const countdown = timerObject('countdown');
+  if (!countdown) return;
+  countdown.remainingMs = effectiveRemaining(countdown);
+  countdown.running = false;
+  countdown.startedAt = null;
+  await persistCurrent();
+  render();
+}
+
+async function resetCountdown() {
+  const countdown = timerObject('countdown');
+  if (!countdown) return;
+  countdown.remainingMs = countdown.durationMs;
+  countdown.running = false;
+  countdown.startedAt = null;
+  countdown.endedAt = null;
+  await persistCurrent();
+  render();
+}
+
+async function handleTimerInput(target, { immediate = false } = {}) {
+  if (!state.current) return;
+  const kind = target.dataset.timerInput;
+  ensureSimulationShape(state.current);
+  if (kind === 'parkingLabel') {
+    state.current.timers.parking.label = target.value || 'Aparcamiento';
+  }
+  if (kind === 'countdownMinutes') {
+    applyCountdownDuration(target.value);
+  }
+  if (immediate) await persistCurrent();
+  else schedulePersistCurrent();
+}
+
+function updateTimerDisplays() {
+  if (!state.current) return;
+  ensureSimulationShape(state.current);
+  const timers = state.current.timers;
+  document.querySelectorAll('[data-timer-display]').forEach((node) => {
+    const [mode, key] = node.dataset.timerDisplay.split(':');
+    const timer = timers[key];
+    if (!timer) return;
+    node.textContent = mode === 'remaining' ? formatMs(effectiveRemaining(timer)) : formatMs(effectiveElapsed(timer));
+  });
+
+  const countdown = timers.countdown;
+  if (countdown?.running && effectiveRemaining(countdown) <= 0) {
+    countdown.running = false;
+    countdown.remainingMs = 0;
+    countdown.startedAt = null;
+    countdown.endedAt = nowIso();
+    persistCurrent().catch((error) => console.warn('No se pudo guardar el temporizador finalizado', error));
+    setToast('Temporizador finalizado');
+  }
 }
 
 async function addFault(id, stayOnFaults = false) {
@@ -520,7 +889,7 @@ async function startNewSimulation() {
     const ok = window.confirm('¿Crear una simulación nueva? La actual quedará guardada en el historial.');
     if (!ok) return;
   }
-  state.current = emptySimulation();
+  state.current = ensureSimulationShape(emptySimulation());
   state.tab = 'sim';
   await persistCurrent();
   render();
@@ -538,7 +907,7 @@ async function duplicateSimulation(id) {
     updatedAt: nowIso()
   };
   await putSimulation(copy);
-  state.current = copy;
+  state.current = ensureSimulationShape(copy);
   state.history = await listSimulations();
   state.tab = 'sim';
   await putSetting('currentSimulationId', copy.id);
@@ -589,12 +958,29 @@ async function handleAction(target, event) {
     render();
   }
 
+
+  if (action === 'timer-start') await startStopwatch(target.dataset.timer);
+  if (action === 'timer-pause') await pauseStopwatch(target.dataset.timer);
+  if (action === 'timer-reset') await resetStopwatch(target.dataset.timer);
+  if (action === 'timer-save-record') await saveParkingRecord();
+  if (action === 'remove-time-record') await removeTimeRecord(target.dataset.id);
+
+  if (action === 'set-countdown') {
+    applyCountdownDuration(target.dataset.minutes);
+    await persistCurrent();
+    render();
+  }
+
+  if (action === 'countdown-start') await startCountdown();
+  if (action === 'countdown-pause') await pauseCountdown();
+  if (action === 'countdown-reset') await resetCountdown();
+
   if (action === 'new-simulation') await startNewSimulation();
 
   if (action === 'load-simulation') {
     const sim = await getSimulation(target.dataset.id);
     if (sim) {
-      state.current = sim;
+      state.current = ensureSimulationShape(sim);
       await putSetting('currentSimulationId', sim.id);
       state.tab = 'sim';
       render();
@@ -605,7 +991,7 @@ async function handleAction(target, event) {
     const ok = window.confirm('¿Borrar esta simulación del historial?');
     if (!ok) return;
     await deleteSimulation(target.dataset.id);
-    if (state.current?.id === target.dataset.id) state.current = emptySimulation();
+    if (state.current?.id === target.dataset.id) state.current = ensureSimulationShape(emptySimulation());
     await persistCurrent();
     state.history = await listSimulations();
     render();
@@ -656,12 +1042,14 @@ async function handleAction(target, event) {
 app.addEventListener('input', (event) => {
   const target = event.target;
   if (target.dataset.field) updateField(target);
+  if (target.dataset.timerInput) handleTimerInput(target);
   if (target.dataset.action === 'search') handleAction(target, event);
 });
 
 app.addEventListener('change', (event) => {
   const target = event.target;
-  if (target.dataset.field) updateField(target);
+  if (target.dataset.field) updateField(target, { immediate: true });
+  if (target.dataset.timerInput) handleTimerInput(target, { immediate: true });
   if (target.dataset.action === 'import-json') handleAction(target, event);
 });
 
@@ -690,12 +1078,13 @@ async function init() {
   state.installedHintDismissed = Boolean(await getSetting('installHintDismissed'));
   const currentId = await getSetting('currentSimulationId');
   state.history = await listSimulations();
-  state.current = currentId ? await getSimulation(currentId) : null;
+  state.current = currentId ? ensureSimulationShape(await getSimulation(currentId)) : null;
   if (!state.current) {
-    state.current = emptySimulation();
+    state.current = ensureSimulationShape(emptySimulation());
     await persistCurrent();
   }
   render();
+  window.setInterval(updateTimerDisplays, 1000);
   initServiceWorker();
 }
 
