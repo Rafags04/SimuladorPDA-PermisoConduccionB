@@ -204,11 +204,18 @@ function formatMs(ms) {
   const totalMinutes = Math.floor(totalSeconds / 60);
   const minutes = totalMinutes % 60;
   const hours = Math.floor(totalMinutes / 60);
-  const mmm = String(milliseconds).padStart(3, '0');
+  
+  const decimas = Math.floor(milliseconds / 100);
+  const centesimas = Math.floor((milliseconds % 100) / 10);
+  const milesimas = milliseconds % 10;
+  
   const ss = String(seconds).padStart(2, '0');
   const mm = String(minutes).padStart(2, '0');
-  if (hours > 0) return `${hours}:${mm}:${ss}.${mmm}`;
-  return `${mm}:${ss}.${mmm}`;
+  
+  const smallPart = `<small>.${decimas}${centesimas}${milesimas}</small>`;
+  const formatted = `${mm}:${ss}${smallPart}`;
+  if (hours > 0) return `${String(hours).padStart(2, '0')}:${formatted}`;
+  return formatted;
 }
 
 function countdownMinutes(timer) {
@@ -373,47 +380,51 @@ function homeView() {
   return `
     <main class="screen home-screen">
       ${installHint()}
-      <section class="card home-hero">
-        <p class="eyebrow">Panel principal</p>
-        <h2>¿Qué quieres hacer?</h2>
-        <p class="muted">Gestiona alumnos, abre sus exámenes anteriores o inicia una nueva simulación.</p>
-        <div class="home-stats">
-          <div><b>${state.students.length}</b><span>Alumnos</span></div>
-          <div><b>${state.history.length}</b><span>Exámenes</span></div>
-          <div><b>${finalized}</b><span>Finalizados</span></div>
+      <section class="card hero-card">
+        <p class="eyebrow">Simulador PDA</p>
+        <h2>Permiso de Conducción B</h2>
+        <p class="muted">Gestiona tus alumnos y simulaciones con facilidad.</p>
+        <div class="home-stats kpi-grid">
+          <div class="kpi"><b>${state.students.length}</b><span>Alumnos</span></div>
+          <div class="kpi"><b>${state.history.length}</b><span>Exámenes</span></div>
+          <div class="kpi"><b>${finalized}</b><span>Finalizados</span></div>
         </div>
       </section>
 
       <section class="home-grid">
         <button class="home-card primary-card" data-action="screen" data-screen="student-new">
-          <span>＋</span>
+          <span>👨‍🎓</span>
           <strong>Nuevo alumno</strong>
-          <small>Crear una ficha y añadirlo al listado.</small>
+          <small>Crea una nueva ficha rápidamente</small>
         </button>
         <button class="home-card" data-action="screen" data-screen="students">
-          <span>👤</span>
+          <span>👥</span>
           <strong>Lista de alumnos</strong>
-          <small>Ver datos, exámenes y evolución de cada alumno.</small>
+          <small>Gestiona tus alumnos registrados</small>
         </button>
         <button class="home-card" data-action="new-quick-simulation">
           <span>🚘</span>
           <strong>Examen rápido</strong>
-          <small>Iniciar una simulación sin ficha previa.</small>
+          <small>Inicia una simulación libre</small>
         </button>
         <button class="home-card" data-action="screen" data-screen="history">
           <span>🕘</span>
-          <strong>Historial general</strong>
-          <small>Consultar todos los exámenes guardados.</small>
+          <strong>Historial</strong>
+          <small>Consulta todas las pruebas</small>
         </button>
-        <button class="home-card" data-action="screen" data-screen="settings">
+        ${state.current ? `
+        <button class="home-card primary-card" style="grid-column: 1 / -1; flex-direction: row; gap: 16px; padding: 14px 20px;" data-action="screen" data-screen="sim">
+          <span style="margin: 0; font-size: 24px;">▶</span>
+          <div style="text-align: left; flex: 1;">
+            <strong style="margin: 0; font-size: 18px;">Continuar examen</strong>
+            <small style="display: block;">${esc(activeName)} · ${activeResult.result}</small>
+          </div>
+        </button>
+        ` : ''}
+        <button class="home-card" style="grid-column: 1 / -1;" data-action="screen" data-screen="settings">
           <span>⚙️</span>
           <strong>Ajustes y copias</strong>
-          <small>Exportar, importar y revisar información.</small>
-        </button>
-        <button class="home-card" data-action="screen" data-screen="sim">
-          <span>▶</span>
-          <strong>Continuar examen</strong>
-          <small>${esc(activeName)} · ${activeResult.result}</small>
+          <small>Opciones, exportación e importación</small>
         </button>
       </section>
     </main>
@@ -654,11 +665,13 @@ function timersCard() {
       <div class="timer-grid">
         <article class="timer-panel">
           <div class="timer-title"><strong>Cronómetro del examen</strong><span>${exam.running ? 'En marcha' : 'Pausado'}</span></div>
-          <div class="timer-value" data-timer-display="elapsed:exam">${formatMs(effectiveElapsed(exam))}</div>
-          <div class="timer-actions">
-            <button class="primary" data-action="timer-start" data-timer="exam">Iniciar</button>
-            <button class="secondary" data-action="timer-pause" data-timer="exam">Pausar</button>
+          <div class="timer-value digital-display" data-timer-display="elapsed:exam">${formatMs(effectiveElapsed(exam))}</div>
+          <div class="timer-actions two-cols">
             <button class="ghost-button" data-action="timer-reset" data-timer="exam">Reiniciar</button>
+            ${exam.running 
+              ? `<button class="primary danger" data-action="timer-pause" data-timer="exam">Parar</button>`
+              : `<button class="primary success" data-action="timer-start" data-timer="exam">Iniciar</button>`
+            }
           </div>
         </article>
         <article class="timer-panel">
@@ -666,12 +679,14 @@ function timersCard() {
           <label class="compact-label">Nombre de la maniobra
             <input data-timer-input="parkingLabel" value="${esc(parking.label || 'Aparcamiento')}" placeholder="Ej.: Aparcamiento" autocomplete="off" />
           </label>
-          <div class="timer-value" data-timer-display="elapsed:parking">${formatMs(effectiveElapsed(parking))}</div>
-          <div class="timer-actions">
-            <button class="primary" data-action="timer-start" data-timer="parking">Iniciar</button>
-            <button class="secondary" data-action="timer-pause" data-timer="parking">Pausar</button>
-            <button class="ghost-button" data-action="timer-reset" data-timer="parking">Reiniciar</button>
-            <button class="primary light" data-action="timer-save-record">Guardar tiempo</button>
+          <div class="timer-value digital-display" data-timer-display="elapsed:parking">${formatMs(effectiveElapsed(parking))}</div>
+          <div class="timer-actions two-cols">
+            ${parking.running 
+              ? `<button class="primary" style="background: #0ea5e9;" data-action="timer-save-record">Vuelta</button>
+                 <button class="primary danger" data-action="timer-pause" data-timer="parking">Parar</button>`
+              : `<button class="ghost-button" data-action="timer-reset" data-timer="parking">Reiniciar</button>
+                 <button class="primary success" data-action="timer-start" data-timer="parking">Iniciar</button>`
+            }
           </div>
         </article>
         <article class="timer-panel timer-panel-wide ${countdownFinished ? 'timer-finished' : ''}">
@@ -1221,7 +1236,7 @@ function updateTimerDisplays() {
     const [mode, key] = node.dataset.timerDisplay.split(':');
     const timer = timers[key];
     if (!timer) return;
-    node.textContent = mode === 'remaining' ? formatMs(effectiveRemaining(timer)) : formatMs(effectiveElapsed(timer));
+    node.innerHTML = mode === 'remaining' ? formatMs(effectiveRemaining(timer)) : formatMs(effectiveElapsed(timer));
   });
   const countdown = timers.countdown;
   if (countdown?.running && effectiveRemaining(countdown) <= 0) {
@@ -1561,7 +1576,7 @@ async function init() {
   }
   state.screen = 'home';
   render();
-  window.setInterval(updateTimerDisplays, 37);
+  window.setInterval(updateTimerDisplays, 16);
   initServiceWorker();
 }
 
