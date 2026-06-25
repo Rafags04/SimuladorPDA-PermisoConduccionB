@@ -1,6 +1,37 @@
 import { jsPDF } from 'jspdf';
 import { evaluateSimulation, levelName } from './rules.js';
 
+function nowMs() {
+  return Date.now();
+}
+
+function effectiveElapsed(timer) {
+  const base = Number(timer?.elapsedMs || 0);
+  if (!timer?.running || !timer.startedAt) return base;
+  return Math.max(0, base + (nowMs() - Number(timer.startedAt)));
+}
+
+function effectiveRemaining(timer) {
+  const base = Number(timer?.remainingMs ?? timer?.durationMs ?? 0);
+  if (!timer?.running || !timer.startedAt) return Math.max(0, base);
+  return Math.max(0, base - (nowMs() - Number(timer.startedAt)));
+}
+
+function formatMs(ms) {
+  const safe = Math.max(0, Math.floor(Number(ms || 0)));
+  const milliseconds = safe % 1000;
+  const totalSeconds = Math.floor(safe / 1000);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const msPart = String(milliseconds).padStart(3, '0');
+  const ss = String(seconds).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  if (hours > 0) return `${hours}:${mm}:${ss}.${msPart}`;
+  return `${mm}:${ss}.${msPart}`;
+}
+
 function formatDate(value) {
   if (!value) return '';
   try {
@@ -18,11 +49,11 @@ function filenameFor(simulation) {
     .replace(/[^a-z0-9]+/gi, '_')
     .replace(/^_+|_+$/g, '')
     .slice(0, 40);
-  return `Simulacion_${student}_${date}.pdf`;
+  return `Simulacion_${student || 'alumno'}_${date}.pdf`;
 }
 
 function addWrapped(doc, text, x, y, maxWidth, lineHeight = 6) {
-  const lines = doc.splitTextToSize(text || '', maxWidth);
+  const lines = doc.splitTextToSize(String(text || ''), maxWidth);
   lines.forEach((line) => {
     if (y > 280) {
       doc.addPage();
@@ -32,6 +63,17 @@ function addWrapped(doc, text, x, y, maxWidth, lineHeight = 6) {
     y += lineHeight;
   });
   return y;
+}
+
+function drawSectionTitle(doc, title, margin, y) {
+  if (y > 265) {
+    doc.addPage();
+    y = 18;
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text(title, margin, y);
+  return y + 7;
 }
 
 export function downloadSimulationPdf(simulation, catalogById) {
@@ -94,13 +136,10 @@ export function downloadSimulationPdf(simulation, catalogById) {
   const parkingElapsed = effectiveElapsed(timers.parking);
   const countdownRemaining = effectiveRemaining(timers.countdown);
   const timeRecords = timers.parking?.records || [];
-  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timeRecords.length;
+  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timeRecords.length || timers.countdown;
 
   if (hasTimes) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
-    doc.text('Tiempos', margin, y);
-    y += 7;
+    y = drawSectionTitle(doc, 'Tiempos', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.text(`Cronómetro examen: ${formatMs(examElapsed)}`, margin, y);
@@ -129,10 +168,7 @@ export function downloadSimulationPdf(simulation, catalogById) {
     y += 4;
   }
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('Faltas marcadas', margin, y);
-  y += 7;
+  y = drawSectionTitle(doc, 'Faltas marcadas', margin, y);
   doc.setFontSize(10);
 
   const faults = simulation.faults || [];
@@ -163,14 +199,7 @@ export function downloadSimulationPdf(simulation, catalogById) {
   });
 
   if (simulation.generalNotes) {
-    if (y > 250) {
-      doc.addPage();
-      y = 18;
-    }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
-    doc.text('Observaciones generales', margin, y);
-    y += 7;
+    y = drawSectionTitle(doc, 'Observaciones generales', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     y = addWrapped(doc, simulation.generalNotes, margin, y, 180, 5);

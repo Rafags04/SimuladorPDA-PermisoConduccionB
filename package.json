@@ -1,17 +1,22 @@
 {
   "name": "simulador-permiso-b-pwa",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node tests/run-tests.mjs",
+    "check": "npm run test && npm run build"
   },
   "dependencies": {
-    "jspdf": "^3.0.1"
+    "jspdf": "^4.2.1"
   },
   "devDependencies": {
     "vite": "^7.0.0"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

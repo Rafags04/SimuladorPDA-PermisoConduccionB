@@ -1,99 +1,116 @@
-const DB_NAME = 'simulador-permiso-b';
-const DB_VERSION = 1;
-const STORE_SIMULATIONS = 'simulations';
-const STORE_SETTINGS = 'settings';
+const DB_NAME = 'simulador_permiso_b_db';
+const DB_VERSION = 5;
 
 let dbPromise;
+
+export function makeId(prefix = 'id') {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
 export function openDatabase() {
   if (dbPromise) return dbPromise;
 
   dbPromise = new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      reject(new Error('IndexedDB no está disponible en este navegador.'));
+      return;
+    }
+
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_SIMULATIONS)) {
-        const store = db.createObjectStore(STORE_SIMULATIONS, { keyPath: 'id' });
+
+      if (!db.objectStoreNames.contains('simulations')) {
+        const store = db.createObjectStore('simulations', { keyPath: 'id' });
         store.createIndex('updatedAt', 'updatedAt');
-        store.createIndex('createdAt', 'createdAt');
-        store.createIndex('studentName', 'studentName');
+        store.createIndex('studentId', 'studentId');
+      } else {
+        const store = request.transaction.objectStore('simulations');
+        if (!store.indexNames.contains('studentId')) store.createIndex('studentId', 'studentId');
       }
-      if (!db.objectStoreNames.contains(STORE_SETTINGS)) {
-        db.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
+
+      if (!db.objectStoreNames.contains('students')) {
+        const store = db.createObjectStore('students', { keyPath: 'id' });
+        store.createIndex('name', 'name');
+        store.createIndex('updatedAt', 'updatedAt');
+      }
+
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings', { keyPath: 'key' });
       }
     };
 
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error('La base de datos está bloqueada por otra pestaña abierta.'));
   });
 
   return dbPromise;
 }
 
-function transaction(storeName, mode = 'readonly') {
+function tx(storeName, mode = 'readonly') {
   return openDatabase().then((db) => db.transaction(storeName, mode).objectStore(storeName));
 }
 
-export async function putSimulation(simulation) {
-  const store = await transaction(STORE_SIMULATIONS, 'readwrite');
+function requestToPromise(request) {
   return new Promise((resolve, reject) => {
-    const request = store.put(simulation);
-    request.onsuccess = () => resolve(simulation);
+    request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
+}
+
+export async function putSimulation(simulation) {
+  const store = await tx('simulations', 'readwrite');
+  await requestToPromise(store.put(simulation));
+  return simulation;
 }
 
 export async function getSimulation(id) {
-  const store = await transaction(STORE_SIMULATIONS);
-  return new Promise((resolve, reject) => {
-    const request = store.get(id);
-    request.onsuccess = () => resolve(request.result || null);
-    request.onerror = () => reject(request.error);
-  });
+  const store = await tx('simulations');
+  return requestToPromise(store.get(id));
 }
 
 export async function deleteSimulation(id) {
-  const store = await transaction(STORE_SIMULATIONS, 'readwrite');
-  return new Promise((resolve, reject) => {
-    const request = store.delete(id);
-    request.onsuccess = () => resolve(true);
-    request.onerror = () => reject(request.error);
-  });
+  const store = await tx('simulations', 'readwrite');
+  return requestToPromise(store.delete(id));
 }
 
 export async function listSimulations() {
-  const store = await transaction(STORE_SIMULATIONS);
-  return new Promise((resolve, reject) => {
-    const request = store.getAll();
-    request.onsuccess = () => {
-      const rows = request.result || [];
-      rows.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-      resolve(rows);
-    };
-    request.onerror = () => reject(request.error);
-  });
+  const store = await tx('simulations');
+  const rows = await requestToPromise(store.getAll());
+  return rows.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+}
+
+export async function putStudent(student) {
+  const store = await tx('students', 'readwrite');
+  await requestToPromise(store.put(student));
+  return student;
+}
+
+export async function getStudent(id) {
+  const store = await tx('students');
+  return requestToPromise(store.get(id));
+}
+
+export async function deleteStudent(id) {
+  const store = await tx('students', 'readwrite');
+  return requestToPromise(store.delete(id));
+}
+
+export async function listStudents() {
+  const store = await tx('students');
+  const rows = await requestToPromise(store.getAll());
+  return rows.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es'));
 }
 
 export async function putSetting(key, value) {
-  const store = await transaction(STORE_SETTINGS, 'readwrite');
-  return new Promise((resolve, reject) => {
-    const request = store.put({ key, value });
-    request.onsuccess = () => resolve(value);
-    request.onerror = () => reject(request.error);
-  });
+  const store = await tx('settings', 'readwrite');
+  return requestToPromise(store.put({ key, value }));
 }
 
-export async function getSetting(key) {
-  const store = await transaction(STORE_SETTINGS);
-  return new Promise((resolve, reject) => {
-    const request = store.get(key);
-    request.onsuccess = () => resolve(request.result?.value ?? null);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export function makeId(prefix = 'sim') {
-  const random = crypto.getRandomValues(new Uint32Array(2));
-  return `${prefix}_${Date.now().toString(36)}_${Array.from(random).map((n) => n.toString(36)).join('')}`;
+export async function getSetting(key, fallback = null) {
+  const store = await tx('settings');
+  const row = await requestToPromise(store.get(key));
+  return row ? row.value : fallback;
 }
