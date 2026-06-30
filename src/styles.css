@@ -444,25 +444,106 @@ h2 { font-size: 18px; margin-bottom: 10px; }
 .block[open] summary::after { content: '−'; }
 .block summary b { color: var(--muted); font-size: 12px; margin-left: auto; }
 
-.fault-list {
+.fault-blocks {
   display: grid;
   gap: 8px;
-  padding: 8px;
 }
 
-.compact-list { padding: 0; }
-
-.fault-button {
-  background: #fff;
+.fault-block {
+  background: var(--card-solid);
   border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.fault-block:has([open]) {
+  box-shadow: var(--shadow);
+}
+.fault-block > summary {
+  align-items: center;
+  background: #f8fafc;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  padding: 12px 16px;
+  user-select: none;
+  list-style: none;
+}
+.fault-block > summary::-webkit-details-marker { display: none; }
+.fault-block-name {
+  font-size: 15px;
+  font-weight: 950;
+  flex: 1;
   color: var(--ink);
-  display: block;
-  padding: 12px;
+}
+.fault-block-count {
+  background: var(--blue);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.fault-block > summary::after {
+  content: '›';
+  color: var(--muted);
+  font-size: 22px;
+  font-weight: 300;
+  transition: transform 0.2s;
+  margin-left: 4px;
+}
+.fault-block[open] > summary::after { transform: rotate(90deg); }
+
+.fault-block-list {
+  display: grid;
+  gap: 0;
+  padding: 6px 8px 8px;
+}
+
+.fault-row {
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--ink);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 10px 12px;
   text-align: left;
+  transition: background 0.12s, border-color 0.12s;
   width: 100%;
 }
+.fault-row:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.fault-row:active {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+.fault-row-badge { flex: 0 0 auto; padding-top: 1px; }
+.fault-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.fault-row-title {
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+.fault-row-obs {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
 
-.fault-button:active { background: #eef2ff; border-color: #93c5fd; }
 .fault-title { align-items: flex-start; display: flex; gap: 8px; line-height: 1.3; }
 .fault-button small { color: var(--muted); display: block; font-size: 12px; line-height: 1.35; margin-top: 6px; }
 
@@ -674,48 +755,104 @@ h2 { font-size: 18px; margin-bottom: 10px; }
 .timers-card .section-head { margin-bottom: 10px; }
 .timer-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .timer-panel {
   background: #f8fafc;
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 12px;
+  padding: 14px;
 }
 .timer-panel-wide { grid-column: 1 / -1; }
 .timer-panel.timer-finished {
   background: #fff7ed;
   border-color: #fdba74;
 }
-.timer-title {
+
+/* Barra de estado del cronómetro */
+.timer-status-bar {
   align-items: center;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 2px;
 }
-.timer-title strong { font-size: 15px; }
-.timer-title span {
+.timer-status-bar strong { font-size: 14px; }
+.timer-status-pill {
+  background: var(--soft);
+  border-radius: 999px;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 9px;
   white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
 }
+.timer-status-pill.running {
+  background: #dcfce7;
+  color: #15803d;
+}
+.timer-status-pill.paused {
+  background: #fef9c3;
+  color: #a16207;
+}
+.timer-status-pill.finished {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .timer-value {
   font-variant-numeric: tabular-nums;
   font-size: 40px;
   font-weight: 950;
   letter-spacing: -0.04em;
   line-height: 1;
-  margin: 14px 0;
+  margin: 14px 0 12px;
   text-align: center;
 }
-.timer-actions {
-  display: grid;
+
+/* Fila de botones del cronómetro */
+.timer-btn-row {
+  display: flex;
   gap: 8px;
-  grid-template-columns: repeat(3, 1fr);
+  flex-wrap: wrap;
 }
-.timer-actions .light { grid-column: 1 / -1; }
+.timer-btn {
+  border-radius: 12px;
+  flex: 1 1 0;
+  font-size: 14px;
+  font-weight: 900;
+  min-height: 42px;
+  padding: 9px 10px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.timer-btn:active { opacity: 0.8; transform: scale(0.97); }
+.timer-btn-start {
+  background: var(--green);
+  color: #fff;
+}
+.timer-btn-resume {
+  background: #0ea5e9;
+  color: #fff;
+}
+.timer-btn-stop {
+  background: var(--red);
+  color: #fff;
+}
+.timer-btn-reset {
+  background: var(--soft);
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.timer-btn-reset:hover { background: #e2e8f0; color: var(--ink); }
+.timer-btn-lap {
+  background: #7c3aed;
+  color: #fff;
+}
+
+.timer-actions { display: none; } /* legacy, no usado */
+.timer-title { display: none; }   /* legacy, no usado */
 .compact-label {
   color: var(--muted);
   font-size: 12px;

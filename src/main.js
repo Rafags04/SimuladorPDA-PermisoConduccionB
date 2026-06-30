@@ -654,43 +654,97 @@ function timersCard() {
   const parking = timers.parking;
   const countdown = timers.countdown;
   const countdownFinished = effectiveRemaining(countdown) <= 0 && !countdown.running;
+
+  // Determinar estado de cada cronómetro
+  const examElapsed = effectiveElapsed(exam);
+  const parkingElapsed = effectiveElapsed(parking);
+
+  // Botones del cronómetro del examen
+  let examButtons;
+  if (exam.running) {
+    examButtons = `
+      <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="exam">⏹ Parar</button>
+      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
+  } else if (examElapsed > 0) {
+    examButtons = `
+      <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="exam">▶ Reanudar</button>
+      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
+  } else {
+    examButtons = `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="exam">▶ Iniciar</button>`;
+  }
+
+  // Botones del cronómetro de maniobra
+  let parkingButtons;
+  if (parking.running) {
+    parkingButtons = `
+      <button class="timer-btn timer-btn-lap" data-action="timer-save-record">⊕ Vuelta</button>
+      <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="parking">⏹ Parar</button>
+      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
+  } else if (parkingElapsed > 0) {
+    parkingButtons = `
+      <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="parking">▶ Reanudar</button>
+      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
+  } else {
+    parkingButtons = `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="parking">▶ Iniciar</button>`;
+  }
+
+  // Botones del temporizador cuenta atrás
+  let countdownButtons;
+  if (countdown.running) {
+    countdownButtons = `
+      <button class="timer-btn timer-btn-stop" data-action="countdown-pause">⏹ Parar</button>
+      <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+  } else if (countdownFinished) {
+    countdownButtons = `<button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+  } else if (effectiveRemaining(countdown) < countdown.durationMs) {
+    countdownButtons = `
+      <button class="timer-btn timer-btn-resume" data-action="countdown-start">▶ Reanudar</button>
+      <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+  } else {
+    countdownButtons = `<button class="timer-btn timer-btn-start" data-action="countdown-start">▶ Iniciar</button>`;
+  }
+
   return `
     <section class="card timers-card">
       <div class="section-head">
         <div>
           <h2>Cronómetros y temporizadores</h2>
-          <p class="muted">Milésimas activas para medir aparcamientos y maniobras con precisión.</p>
+          <p class="muted">Mide el tiempo del examen, maniobras y cuenta atrás con precisión.</p>
         </div>
       </div>
       <div class="timer-grid">
         <article class="timer-panel">
-          <div class="timer-title"><strong>Cronómetro del examen</strong><span>${exam.running ? 'En marcha' : 'Pausado'}</span></div>
-          <div class="timer-value digital-display" data-timer-display="elapsed:exam">${formatMs(effectiveElapsed(exam))}</div>
-          <div class="timer-actions two-cols">
-            <button class="ghost-button" data-action="timer-reset" data-timer="exam">Reiniciar</button>
-            ${exam.running 
-              ? `<button class="primary danger" data-action="timer-pause" data-timer="exam">Parar</button>`
-              : `<button class="primary success" data-action="timer-start" data-timer="exam">Iniciar</button>`
-            }
+          <div class="timer-status-bar">
+            <strong>Cronómetro del examen</strong>
+            <span class="timer-status-pill ${exam.running ? 'running' : examElapsed > 0 ? 'paused' : ''}">${
+              exam.running ? '● En marcha' : examElapsed > 0 ? '‖ Pausado' : 'Listo'
+            }</span>
           </div>
+          <div class="timer-value digital-display" data-timer-display="elapsed:exam">${formatMs(examElapsed)}</div>
+          <div class="timer-btn-row">${examButtons}</div>
         </article>
+
         <article class="timer-panel">
-          <div class="timer-title"><strong>Cronómetro de maniobra</strong><span>${parking.running ? 'En marcha' : 'Pausado'}</span></div>
-          <label class="compact-label">Nombre de la maniobra
+          <div class="timer-status-bar">
+            <strong>Cronómetro de maniobra</strong>
+            <span class="timer-status-pill ${parking.running ? 'running' : parkingElapsed > 0 ? 'paused' : ''}">${
+              parking.running ? '● En marcha' : parkingElapsed > 0 ? '‖ Pausado' : 'Listo'
+            }</span>
+          </div>
+          <label class="compact-label">Nombre
             <input data-timer-input="parkingLabel" value="${esc(parking.label || 'Aparcamiento')}" placeholder="Ej.: Aparcamiento" autocomplete="off" />
           </label>
-          <div class="timer-value digital-display" data-timer-display="elapsed:parking">${formatMs(effectiveElapsed(parking))}</div>
-          <div class="timer-actions two-cols">
-            ${parking.running 
-              ? `<button class="primary" style="background: #0ea5e9;" data-action="timer-save-record">Vuelta</button>
-                 <button class="primary danger" data-action="timer-pause" data-timer="parking">Parar</button>`
-              : `<button class="ghost-button" data-action="timer-reset" data-timer="parking">Reiniciar</button>
-                 <button class="primary success" data-action="timer-start" data-timer="parking">Iniciar</button>`
-            }
-          </div>
+          <div class="timer-value digital-display" data-timer-display="elapsed:parking">${formatMs(parkingElapsed)}</div>
+          <div class="timer-btn-row">${parkingButtons}</div>
         </article>
+
         <article class="timer-panel timer-panel-wide ${countdownFinished ? 'timer-finished' : ''}">
-          <div class="timer-title"><strong>Temporizador</strong><span>${countdown.running ? 'Cuenta atrás' : countdownFinished ? 'Finalizado' : 'Preparado'}</span></div>
+          <div class="timer-status-bar">
+            <strong>Temporizador cuenta atrás</strong>
+            <span class="timer-status-pill ${countdown.running ? 'running' : countdownFinished ? 'finished' : ''}">${
+              countdown.running ? '● Cuenta atrás' : countdownFinished ? '✓ Finalizado' : 'Listo'
+            }</span>
+          </div>
           <div class="countdown-settings">
             <label class="compact-label">Minutos
               <input type="number" min="1" max="180" step="1" data-timer-input="countdownMinutes" value="${countdownMinutes(countdown)}" />
@@ -703,11 +757,7 @@ function timersCard() {
             </div>
           </div>
           <div class="timer-value" data-timer-display="remaining:countdown">${formatMs(effectiveRemaining(countdown))}</div>
-          <div class="timer-actions">
-            <button class="primary" data-action="countdown-start">Iniciar</button>
-            <button class="secondary" data-action="countdown-pause">Pausar</button>
-            <button class="ghost-button" data-action="countdown-reset">Reiniciar</button>
-          </div>
+          <div class="timer-btn-row">${countdownButtons}</div>
         </article>
       </div>
       <details class="time-records-box" ${parking.records.length ? 'open' : ''}>
@@ -735,14 +785,19 @@ function faultsView() {
       </section>
       <section class="fault-blocks">
         ${[...blocks.entries()].map(([block, rows]) => `
-          <details class="fault-block" open>
-            <summary><span>${esc(block)}</span><b>${rows.length}</b></summary>
-            <div>
+          <details class="fault-block">
+            <summary>
+              <span class="fault-block-name">${esc(block)}</span>
+              <span class="fault-block-count">${rows.length} falta${rows.length !== 1 ? 's' : ''}</span>
+            </summary>
+            <div class="fault-block-list">
               ${rows.map((item) => `
                 <button class="fault-row" data-action="open-fault" data-id="${item.id}">
-                  ${badge(item.tipo)}
-                  <span>${esc(item.falta)}</span>
-                  <small>${esc(item.obs || item.nivel || '')}</small>
+                  <span class="fault-row-badge">${badge(item.tipo)}</span>
+                  <span class="fault-row-body">
+                    <span class="fault-row-title">${esc(item.falta)}</span>
+                    ${item.obs || item.nivel ? `<small class="fault-row-obs">${esc(item.obs || item.nivel)}</small>` : ''}
+                  </span>
                 </button>
               `).join('')}
             </div>

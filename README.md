@@ -16,8 +16,7 @@ Proyecto preliminar funcional para registrar faltas de simulaciones del examen p
 - Exportación de informe PDF.
 - Exportación e importación de copias JSON.
 - PWA con `manifest.webmanifest` y `service worker`.
-- Carpeta `dist/` ya generada para publicar o probar sin instalar dependencias.
-- Servidor local simple para Windows: `PROBAR-WINDOWS.cmd`.
+- Preparado para despliegue con **Docker** y **Nginx**.
 
 ## Cambios de esta versión
 
@@ -25,26 +24,30 @@ Proyecto preliminar funcional para registrar faltas de simulaciones del examen p
 - Añadidos cronómetros y temporizador en la pantalla Simulación.
 - Añadidos tiempos al resumen y al PDF.
 
-## Forma rápida de probar en Windows
+## Forma rápida de desplegar con Docker
 
-Requisito: tener Node.js instalado.
+Requisito: tener Docker instalado.
 
-1. Descomprime el ZIP.
-2. Entra en la carpeta `simulador-permiso-b-pwa`.
-3. Haz doble clic en `PROBAR-WINDOWS.cmd`.
-4. Abre en el PC la dirección que aparece:
+1. Entra en la carpeta del proyecto.
+2. Ejecuta el siguiente comando para construir y levantar la aplicación:
 
-```text
-http://localhost:4173
+```bash
+docker compose up -d --build
 ```
 
-Para probar desde iPhone, conecta el iPhone a la misma Wi-Fi y abre en Safari la dirección que aparece como:
+3. Abre en tu navegador la siguiente dirección:
 
 ```text
-http://192.168.x.x:4173
+http://localhost:8080
 ```
 
-Nota: en red local por HTTP sirve para probar. Para instalación PWA completa y funcionamiento offline fiable en iPhone, publícala en HTTPS.
+Para probar desde un iPhone u otro dispositivo de tu red local, conecta el dispositivo a la misma Wi-Fi y abre en el navegador la IP de tu equipo:
+
+```text
+http://192.168.x.x:8080
+```
+
+Nota: en red local por HTTP sirve para probar. Para instalación PWA completa y funcionamiento offline fiable en iPhone, se recomienda publicarla en HTTPS o utilizar túneles seguros.
 
 ## Forma de desarrollo
 
