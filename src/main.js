@@ -647,6 +647,84 @@ function timeRecordsHtml(records = []) {
   `;
 }
 
+function getTimerButtonsHtml(key) {
+  ensureSimulationShape(state.current);
+  const timers = state.current.timers;
+  const timer = timers[key];
+  if (key === 'exam') {
+    const elapsed = effectiveElapsed(timer);
+    if (timer.running) {
+      return `
+        <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="exam">⏹ Parar</button>
+        <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
+    } else if (elapsed > 0) {
+      return `
+        <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="exam">▶ Reanudar</button>
+        <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
+    } else {
+      return `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="exam">▶ Iniciar</button>`;
+    }
+  } else if (key === 'parking') {
+    const elapsed = effectiveElapsed(timer);
+    if (timer.running) {
+      return `
+        <button class="timer-btn timer-btn-lap" data-action="timer-save-record">⊕ Vuelta</button>
+        <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="parking">⏹ Parar</button>
+        <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
+    } else if (elapsed > 0) {
+      return `
+        <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="parking">▶ Reanudar</button>
+        <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
+    } else {
+      return `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="parking">▶ Iniciar</button>`;
+    }
+  } else if (key === 'countdown') {
+    const countdownFinished = effectiveRemaining(timer) <= 0 && !timer.running;
+    if (timer.running) {
+      return `
+        <button class="timer-btn timer-btn-stop" data-action="countdown-pause">⏹ Parar</button>
+        <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+    } else if (countdownFinished) {
+      return `<button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+    } else if (effectiveRemaining(timer) < timer.durationMs) {
+      return `
+        <button class="timer-btn timer-btn-resume" data-action="countdown-start">▶ Reanudar</button>
+        <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
+    } else {
+      return `<button class="timer-btn timer-btn-start" data-action="countdown-start">▶ Iniciar</button>`;
+    }
+  }
+  return '';
+}
+
+function refreshTimerButtons(key) {
+  const container = document.querySelector(`[data-timer-buttons="${key}"]`);
+  if (container) {
+    container.innerHTML = getTimerButtonsHtml(key);
+  }
+  const statusPill = document.querySelector(`[data-timer-status="${key}"]`);
+  if (statusPill) {
+    ensureSimulationShape(state.current);
+    const timer = state.current.timers[key];
+    if (key === 'exam') {
+      const elapsed = effectiveElapsed(timer);
+      const running = timer.running;
+      statusPill.className = `timer-status-pill ${running ? 'running' : elapsed > 0 ? 'paused' : ''}`;
+      statusPill.innerHTML = running ? '● En marcha' : elapsed > 0 ? '‖ Pausado' : 'Listo';
+    } else if (key === 'parking') {
+      const elapsed = effectiveElapsed(timer);
+      const running = timer.running;
+      statusPill.className = `timer-status-pill ${running ? 'running' : elapsed > 0 ? 'paused' : ''}`;
+      statusPill.innerHTML = running ? '● En marcha' : elapsed > 0 ? '‖ Pausado' : 'Listo';
+    } else if (key === 'countdown') {
+      const countdownFinished = effectiveRemaining(timer) <= 0 && !timer.running;
+      const running = timer.running;
+      statusPill.className = `timer-status-pill ${running ? 'running' : countdownFinished ? 'finished' : ''}`;
+      statusPill.innerHTML = running ? '● Cuenta atrás' : countdownFinished ? '✓ Finalizado' : 'Listo';
+    }
+  }
+}
+
 function timersCard() {
   ensureSimulationShape(state.current);
   const timers = state.current.timers;
@@ -659,50 +737,10 @@ function timersCard() {
   const examElapsed = effectiveElapsed(exam);
   const parkingElapsed = effectiveElapsed(parking);
 
-  // Botones del cronómetro del examen
-  let examButtons;
-  if (exam.running) {
-    examButtons = `
-      <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="exam">⏹ Parar</button>
-      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
-  } else if (examElapsed > 0) {
-    examButtons = `
-      <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="exam">▶ Reanudar</button>
-      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="exam">↺ Reiniciar</button>`;
-  } else {
-    examButtons = `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="exam">▶ Iniciar</button>`;
-  }
-
-  // Botones del cronómetro de maniobra
-  let parkingButtons;
-  if (parking.running) {
-    parkingButtons = `
-      <button class="timer-btn timer-btn-lap" data-action="timer-save-record">⊕ Vuelta</button>
-      <button class="timer-btn timer-btn-stop" data-action="timer-pause" data-timer="parking">⏹ Parar</button>
-      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
-  } else if (parkingElapsed > 0) {
-    parkingButtons = `
-      <button class="timer-btn timer-btn-resume" data-action="timer-start" data-timer="parking">▶ Reanudar</button>
-      <button class="timer-btn timer-btn-reset" data-action="timer-reset" data-timer="parking">↺ Reiniciar</button>`;
-  } else {
-    parkingButtons = `<button class="timer-btn timer-btn-start" data-action="timer-start" data-timer="parking">▶ Iniciar</button>`;
-  }
-
-  // Botones del temporizador cuenta atrás
-  let countdownButtons;
-  if (countdown.running) {
-    countdownButtons = `
-      <button class="timer-btn timer-btn-stop" data-action="countdown-pause">⏹ Parar</button>
-      <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
-  } else if (countdownFinished) {
-    countdownButtons = `<button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
-  } else if (effectiveRemaining(countdown) < countdown.durationMs) {
-    countdownButtons = `
-      <button class="timer-btn timer-btn-resume" data-action="countdown-start">▶ Reanudar</button>
-      <button class="timer-btn timer-btn-reset" data-action="countdown-reset">↺ Reiniciar</button>`;
-  } else {
-    countdownButtons = `<button class="timer-btn timer-btn-start" data-action="countdown-start">▶ Iniciar</button>`;
-  }
+  // Botones de cada cronómetro/temporizador
+  const examButtons = getTimerButtonsHtml('exam');
+  const parkingButtons = getTimerButtonsHtml('parking');
+  const countdownButtons = getTimerButtonsHtml('countdown');
 
   return `
     <section class="card timers-card">
@@ -716,18 +754,18 @@ function timersCard() {
         <article class="timer-panel">
           <div class="timer-status-bar">
             <strong>Cronómetro del examen</strong>
-            <span class="timer-status-pill ${exam.running ? 'running' : examElapsed > 0 ? 'paused' : ''}">${
+            <span class="timer-status-pill ${exam.running ? 'running' : examElapsed > 0 ? 'paused' : ''}" data-timer-status="exam">${
               exam.running ? '● En marcha' : examElapsed > 0 ? '‖ Pausado' : 'Listo'
             }</span>
           </div>
           <div class="timer-value digital-display" data-timer-display="elapsed:exam">${formatMs(examElapsed)}</div>
-          <div class="timer-btn-row">${examButtons}</div>
+          <div class="timer-btn-row" data-timer-buttons="exam">${examButtons}</div>
         </article>
 
         <article class="timer-panel">
           <div class="timer-status-bar">
             <strong>Cronómetro de maniobra</strong>
-            <span class="timer-status-pill ${parking.running ? 'running' : parkingElapsed > 0 ? 'paused' : ''}">${
+            <span class="timer-status-pill ${parking.running ? 'running' : parkingElapsed > 0 ? 'paused' : ''}" data-timer-status="parking">${
               parking.running ? '● En marcha' : parkingElapsed > 0 ? '‖ Pausado' : 'Listo'
             }</span>
           </div>
@@ -735,13 +773,13 @@ function timersCard() {
             <input data-timer-input="parkingLabel" value="${esc(parking.label || 'Aparcamiento')}" placeholder="Ej.: Aparcamiento" autocomplete="off" />
           </label>
           <div class="timer-value digital-display" data-timer-display="elapsed:parking">${formatMs(parkingElapsed)}</div>
-          <div class="timer-btn-row">${parkingButtons}</div>
+          <div class="timer-btn-row" data-timer-buttons="parking">${parkingButtons}</div>
         </article>
 
         <article class="timer-panel timer-panel-wide ${countdownFinished ? 'timer-finished' : ''}">
           <div class="timer-status-bar">
             <strong>Temporizador cuenta atrás</strong>
-            <span class="timer-status-pill ${countdown.running ? 'running' : countdownFinished ? 'finished' : ''}">${
+            <span class="timer-status-pill ${countdown.running ? 'running' : countdownFinished ? 'finished' : ''}" data-timer-status="countdown">${
               countdown.running ? '● Cuenta atrás' : countdownFinished ? '✓ Finalizado' : 'Listo'
             }</span>
           </div>
@@ -757,7 +795,7 @@ function timersCard() {
             </div>
           </div>
           <div class="timer-value" data-timer-display="remaining:countdown">${formatMs(effectiveRemaining(countdown))}</div>
-          <div class="timer-btn-row">${countdownButtons}</div>
+          <div class="timer-btn-row" data-timer-buttons="countdown">${countdownButtons}</div>
         </article>
       </div>
       <details class="time-records-box" ${parking.records.length ? 'open' : ''}>
@@ -1190,6 +1228,7 @@ async function startStopwatch(key) {
   setTimerStatus(key, true);
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons(key);
 }
 
 async function pauseStopwatch(key) {
@@ -1197,6 +1236,7 @@ async function pauseStopwatch(key) {
   setTimerStatus(key, false);
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons(key);
 }
 
 async function resetStopwatch(key) {
@@ -1208,6 +1248,7 @@ async function resetStopwatch(key) {
   timer.startedAt = null;
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons(key);
 }
 
 async function saveParkingRecord() {
@@ -1260,6 +1301,7 @@ async function startCountdown() {
   countdown.endedAt = null;
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons('countdown');
 }
 
 async function pauseCountdown() {
@@ -1270,6 +1312,7 @@ async function pauseCountdown() {
   countdown.startedAt = null;
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons('countdown');
 }
 
 async function resetCountdown() {
@@ -1281,6 +1324,7 @@ async function resetCountdown() {
   countdown.endedAt = null;
   await persistCurrent();
   updateTimerDisplays();
+  refreshTimerButtons('countdown');
 }
 
 function updateTimerDisplays() {
@@ -1301,6 +1345,7 @@ function updateTimerDisplays() {
     countdown.endedAt = nowIso();
     persistCurrent().catch((error) => showUserError(error, 'save'));
     setToast('Temporizador finalizado');
+    refreshTimerButtons('countdown');
   }
 }
 

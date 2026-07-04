@@ -10,15 +10,22 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Etapa de producción (Producción)
-# Utilizamos Nginx, que es el servidor web más usado en el mundo para servir archivos estáticos.
-FROM nginx:alpine
+# Etapa de producción (Flask Backend)
+FROM python:3.11-slim
+WORKDIR /app
 
-# Copiar los archivos construidos desde la etapa anterior al directorio que Nginx utiliza para servir
-COPY --from=build /app/dist /usr/share/nginx/html
+# Instalar dependencias de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Exponer el puerto 80
-EXPOSE 80
+# Copiar los archivos estáticos compilados en la etapa de construcción al directorio esperado por Flask
+COPY --from=build /app/dist /app/dist
 
-# Iniciar Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Copiar la aplicación de Flask
+COPY app.py .
+
+# Exponer el puerto 8080
+EXPOSE 8080
+
+# Iniciar la aplicación
+CMD ["python", "app.py"]

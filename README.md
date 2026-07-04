@@ -16,7 +16,7 @@ Proyecto preliminar funcional para registrar faltas de simulaciones del examen p
 - Exportación de informe PDF.
 - Exportación e importación de copias JSON.
 - PWA con `manifest.webmanifest` y `service worker`.
-- Preparado para despliegue con **Docker** y **Nginx**.
+- Preparado para despliegue con **Docker** y **Flask** (Python).
 
 ## Cambios de esta versión
 
@@ -71,6 +71,30 @@ La web final se genera en:
 ```text
 dist/
 ```
+
+## Ejecución local con Flask (sin Docker)
+
+Requisitos: Tener instalado Python y Node.js.
+
+1. Instala dependencias y compila la aplicación frontend:
+   ```bash
+   npm.cmd install
+   npm.cmd run build
+   ```
+2. Instala los requerimientos de Python:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Inicia el servidor de Flask:
+   ```bash
+   python app.py
+   ```
+   *Nota para Windows:* También puedes simplemente ejecutar el archivo `start.bat` haciendo doble clic sobre él.
+
+4. Abre en tu navegador la dirección:
+   ```text
+   http://localhost:8080
+   ```
 
 ## Publicar en web
 
