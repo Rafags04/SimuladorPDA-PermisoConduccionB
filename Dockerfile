@@ -1,31 +1,32 @@
-# Etapa de construcción (Build)
+# Etapa de construcción y verificación (Frontend)
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copiar dependencias primero para aprovechar el caché de Docker
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
-# Copiar el resto del código fuente y construir la aplicación
 COPY . .
-RUN npm run build
+RUN npm run check
 
-# Etapa de producción (Flask Backend)
+# Etapa de producción (Servidor WSGI Gunicorn + Flask)
 FROM python:3.11-slim
 WORKDIR /app
 
-# Instalar dependencias de Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && \
+    adduser --disabled-password --gecos "" --uid 10001 appuser
 
-# Copiar los archivos estáticos compilados en la etapa de construcción al directorio esperado por Flask
 COPY --from=build /app/dist /app/dist
-
-# Copiar la aplicación de Flask
 COPY app.py .
 
-# Exponer el puerto 8080
+USER appuser
 EXPOSE 8080
 
-# Iniciar la aplicación
-CMD ["python", "app.py"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')" || exit 1
+
+CMD ["gunicorn", "--workers", "2", "--threads", "2", "--bind", "0.0.0.0:8080", "app:app"]

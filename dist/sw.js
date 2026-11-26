@@ -1,5 +1,16 @@
-const CACHE = 'simulador-permiso-b-v0.5.1';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
+const CACHE = 'permiso-b-v0.6.0-mwxcoohb';
+const APP_SHELL = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png'
+  ,'./assets/index-CQBaDnY0.css'
+  ,'./assets/index-C_txxmn-.js'
+  ,'./assets/pdf-DKt0M1NA.js'
+  ,'./assets/index.es-BhCWfDHU.js'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -18,20 +29,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const request = event.request;
+  const { request } = event;
   if (request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request)
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Navegaciones HTML: Network-First para recibir nuevas versiones siempre que haya cobertura
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
         .then((response) => {
           if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy));
+            caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
           }
           return response;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // Recursos estáticos del mismo origen: Cache-First con actualización en caché si no estaba
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request).then((response) => {
+        if (response && response.ok && response.type === 'basic') {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      });
     })
   );
 });

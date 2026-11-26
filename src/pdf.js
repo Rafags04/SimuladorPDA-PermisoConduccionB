@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { evaluateSimulation, levelName } from './rules.js';
+import { formatDateEs, localTodayIso } from './validation.js';
 
 function nowMs() {
   return Date.now();
@@ -19,30 +20,20 @@ function effectiveRemaining(timer) {
 
 function formatMs(ms) {
   const safe = Math.max(0, Math.floor(Number(ms || 0)));
-  const milliseconds = safe % 1000;
+  const tenths = Math.floor((safe % 1000) / 100);
   const totalSeconds = Math.floor(safe / 1000);
   const seconds = totalSeconds % 60;
   const totalMinutes = Math.floor(totalSeconds / 60);
   const minutes = totalMinutes % 60;
   const hours = Math.floor(totalMinutes / 60);
-  const msPart = String(milliseconds).padStart(3, '0');
   const ss = String(seconds).padStart(2, '0');
   const mm = String(minutes).padStart(2, '0');
-  if (hours > 0) return `${hours}:${mm}:${ss}.${msPart}`;
-  return `${mm}:${ss}.${msPart}`;
-}
-
-function formatDate(value) {
-  if (!value) return '';
-  try {
-    return new Intl.DateTimeFormat('es-ES').format(new Date(value));
-  } catch {
-    return value;
-  }
+  if (hours > 0) return `${hours}:${mm}:${ss}.${tenths}`;
+  return `${mm}:${ss}.${tenths}`;
 }
 
 function filenameFor(simulation) {
-  const date = simulation.date || new Date().toISOString().slice(0, 10);
+  const date = simulation.date || localTodayIso();
   const student = (simulation.studentName || 'alumno')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -52,10 +43,10 @@ function filenameFor(simulation) {
   return `Simulacion_${student || 'alumno'}_${date}.pdf`;
 }
 
-function addWrapped(doc, text, x, y, maxWidth, lineHeight = 6) {
+function addWrapped(doc, text, x, y, maxWidth, lineHeight = 5.5) {
   const lines = doc.splitTextToSize(String(text || ''), maxWidth);
   lines.forEach((line) => {
-    if (y > 280) {
+    if (y > 278) {
       doc.addPage();
       y = 18;
     }
@@ -65,15 +56,40 @@ function addWrapped(doc, text, x, y, maxWidth, lineHeight = 6) {
   return y;
 }
 
+function addLabelValue(doc, label, value, margin, y) {
+  if (y > 278) {
+    doc.addPage();
+    y = 18;
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${label}:`, margin, y);
+  doc.setFont('helvetica', 'normal');
+  const lines = doc.splitTextToSize(String(value || '-'), 146);
+  lines.forEach((line, idx) => {
+    if (idx > 0 && y > 278) {
+      doc.addPage();
+      y = 18;
+    }
+    doc.text(line, margin + 36, y);
+    y += 5.5;
+  });
+  return y;
+}
+
 function drawSectionTitle(doc, title, margin, y) {
   if (y > 265) {
     doc.addPage();
     y = 18;
   }
+  doc.setDrawColor(210, 216, 224);
+  doc.line(margin, y, 196, y);
+  y += 5.5;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text(title, margin, y);
-  return y + 7;
+  doc.setFontSize(11.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text(title.toUpperCase(), margin, y);
+  doc.setTextColor(0, 0, 0);
+  return y + 6.5;
 }
 
 export function downloadSimulationPdf(simulation, catalogById) {
@@ -83,135 +99,154 @@ export function downloadSimulationPdf(simulation, catalogById) {
   let y = 16;
 
   doc.setProperties({
-    title: `Simulación permiso B - ${simulation.studentName || ''}`,
-    subject: 'Informe de simulación de examen práctico permiso B',
-    creator: 'Simulador permiso B'
+    title: `Informe simulación permiso B - ${simulation.studentName || ''}`,
+    subject: 'Informe de simulación de prueba práctica de circulación - Permiso B',
+    creator: 'Registro PDA Permiso B'
   });
 
+  // Cabecera institucional sobria
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(17);
-  doc.text('Simulación examen práctico permiso B', margin, y);
-  y += 8;
+  doc.setFontSize(9);
+  doc.setTextColor(71, 85, 105);
+  doc.text('FICHA DE EVALUACIÓN · PRUEBA PRÁCTICA PERMISO B', margin, y);
+  y += 6;
 
-  doc.setFontSize(22);
-  doc.setTextColor(result.noApto ? 185 : 21, result.noApto ? 28 : 128, result.noApto ? 28 : 61);
-  doc.text(result.result, margin, y);
+  doc.setFontSize(16);
+  doc.setTextColor(15, 23, 42);
+  doc.text('Informe de simulación de circulación', margin, y);
+
+  // Etiqueta de calificación a la derecha
+  doc.setFillColor(result.noApto ? 254 : 220, result.noApto ? 226 : 252, result.noApto ? 226 : 231);
+  doc.roundedRect(152, y - 6, 44, 9.5, 1.5, 1.5, 'F');
+  doc.setFontSize(12);
+  doc.setTextColor(result.noApto ? 153 : 22, result.noApto ? 27 : 101, result.noApto ? 27 : 52);
+  doc.text(result.result, 174, y + 0.3, { align: 'center' });
   doc.setTextColor(0, 0, 0);
-  y += 10;
+  y += 9;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   const meta = [
-    ['Alumno/a', simulation.studentName || ''],
-    ['Fecha', formatDate(simulation.date)],
-    ['Zona / recorrido', simulation.zone || ''],
-    ['Profesor/a', simulation.teacher || ''],
-    ['Vehículo', simulation.vehicle || '']
+    ['Alumno/a', simulation.studentName || '-'],
+    ['Fecha', formatDateEs(simulation.date, '-')],
+    ['Zona / recorrido', simulation.zone || '-'],
+    ['Profesor/a', simulation.teacher || '-'],
+    ['Vehículo', simulation.vehicle || '-']
   ];
 
   meta.forEach(([label, value]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(value || '-'), margin + 34, y);
-    y += 6;
+    y = addLabelValue(doc, label, value, margin, y);
   });
 
   y += 2;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, y - 4, 182, 9, 1, 1, 'FD');
   doc.setFont('helvetica', 'bold');
-  doc.text(`Leves: ${result.L}`, margin, y);
-  doc.text(`Deficientes: ${result.D}`, margin + 34, y);
-  doc.text(`Eliminatorias: ${result.E}`, margin + 80, y);
-  doc.text(`Total: ${result.total}`, margin + 132, y);
-  y += 8;
+  doc.setFontSize(9.5);
+  doc.text(`Leves (L): ${result.L}`, margin + 4, y + 1.8);
+  doc.text(`Deficientes (D): ${result.D}`, margin + 46, y + 1.8);
+  doc.text(`Eliminatorias (E): ${result.E}`, margin + 96, y + 1.8);
+  doc.text(`Total faltas: ${result.total}`, margin + 146, y + 1.8);
+  y += 10;
 
   if (result.reasons.length) {
     doc.setFont('helvetica', 'normal');
-    y = addWrapped(doc, `Motivo del no apto: ${result.reasons.join(', ')}.`, margin, y, 180, 5);
-    y += 3;
+    doc.setFontSize(9.5);
+    doc.setTextColor(153, 27, 27);
+    y = addWrapped(doc, `Causa de NO APTO: ${result.reasons.join(', ')}.`, margin, y, 182, 5);
+    doc.setTextColor(0, 0, 0);
+    y += 2;
   }
 
   const timers = simulation.timers || {};
   const examElapsed = effectiveElapsed(timers.exam);
   const parkingElapsed = effectiveElapsed(timers.parking);
+  const countdownDuration = Number(timers.countdown?.durationMs || 0);
   const countdownRemaining = effectiveRemaining(timers.countdown);
+  const countdownUsed = countdownDuration > 0 && countdownRemaining < countdownDuration;
   const timeRecords = timers.parking?.records || [];
-  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timeRecords.length || timers.countdown;
+  const hasTimes = examElapsed > 0 || parkingElapsed > 0 || timeRecords.length > 0 || countdownUsed;
 
   if (hasTimes) {
-    y = drawSectionTitle(doc, 'Tiempos', margin, y);
+    y = drawSectionTitle(doc, 'Registro de tiempos', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(`Cronómetro examen: ${formatMs(examElapsed)}`, margin, y);
-    y += 5;
-    doc.text(`${timers.parking?.label || 'Maniobra'}: ${formatMs(parkingElapsed)}`, margin, y);
-    y += 5;
-    if (timers.countdown) {
-      doc.text(`Temporizador restante: ${formatMs(countdownRemaining)}`, margin, y);
+    if (examElapsed > 0) {
+      doc.text(`Duración examen: ${formatMs(examElapsed)}`, margin, y);
+      y += 5;
+    }
+    if (parkingElapsed > 0) {
+      y = addWrapped(doc, `${timers.parking?.label || 'Maniobra'}: ${formatMs(parkingElapsed)}`, margin, y, 182, 5);
+    }
+    if (countdownUsed) {
+      doc.text(`Cuenta atrás restante: ${formatMs(countdownRemaining)}`, margin, y);
       y += 5;
     }
     if (timeRecords.length) {
-      y += 2;
+      y += 1.5;
       doc.setFont('helvetica', 'bold');
-      doc.text('Tiempos guardados:', margin, y);
+      doc.text('Maniobras registradas:', margin, y);
       y += 5;
       doc.setFont('helvetica', 'normal');
       timeRecords.forEach((record) => {
-        if (y > 270) {
-          doc.addPage();
-          y = 18;
-        }
-        doc.text(`- ${record.label || 'Maniobra'}: ${formatMs(record.elapsedMs)}`, margin + 4, y);
-        y += 5;
+        y = addWrapped(doc, `- ${record.label || 'Maniobra'}: ${formatMs(record.elapsedMs)}`, margin + 4, y, 178, 5);
       });
     }
-    y += 4;
+    y += 3;
   }
 
-  y = drawSectionTitle(doc, 'Faltas marcadas', margin, y);
+  y = drawSectionTitle(doc, 'Desglose de faltas calificadas', margin, y);
   doc.setFontSize(10);
 
   const faults = simulation.faults || [];
   if (!faults.length) {
     doc.setFont('helvetica', 'normal');
-    doc.text('No hay faltas marcadas.', margin, y);
+    doc.text('Sin faltas registradas durante la prueba.', margin, y);
     y += 6;
   }
 
   faults.forEach((item, index) => {
-    if (y > 270) {
+    if (y > 268) {
       doc.addPage();
       y = 18;
     }
     const data = item.snapshot || catalogById.get(item.faultId) || item;
-    const tipo = data.tipo || item.tipo || '';
+    const tipo = data.tipo || item.tipo || 'L';
     const title = data.falta || 'Falta';
     const block = data.bloque || '';
-    const note = item.note ? `Observación: ${item.note}` : '';
+    const note = item.note ? `Nota del profesor: ${item.note}` : '';
 
     doc.setFont('helvetica', 'bold');
-    y = addWrapped(doc, `${index + 1}. [${tipo}] ${title}`, margin, y, 180, 5);
+    y = addWrapped(doc, `${index + 1}. [${tipo}] ${title}`, margin, y, 182, 5);
     doc.setFont('helvetica', 'normal');
-    y = addWrapped(doc, `${block} · ${levelName(tipo)}`, margin + 4, y, 176, 5);
-    if (data.obs) y = addWrapped(doc, data.obs, margin + 4, y, 176, 5);
-    if (note) y = addWrapped(doc, note, margin + 4, y, 176, 5);
-    y += 3;
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    y = addWrapped(doc, `${block} - ${levelName(tipo)}`, margin + 5, y, 177, 4.5);
+    if (data.obs) y = addWrapped(doc, data.obs, margin + 5, y, 177, 4.5);
+    if (note) {
+      doc.setTextColor(15, 23, 42);
+      y = addWrapped(doc, note, margin + 5, y, 177, 4.5);
+    }
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    y += 2.5;
   });
 
   if (simulation.generalNotes) {
     y = drawSectionTitle(doc, 'Observaciones generales', margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    y = addWrapped(doc, simulation.generalNotes, margin, y, 180, 5);
+    y = addWrapped(doc, simulation.generalNotes, margin, y, 182, 5);
   }
 
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i += 1) {
     doc.setPage(i);
     doc.setFontSize(8);
-    doc.setTextColor(110, 118, 130);
-    doc.text(`Página ${i} de ${pageCount}`, 180, 290);
-    doc.text('Informe generado desde Simulador permiso B', margin, 290);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Página ${i} de ${pageCount}`, 196, 290, { align: 'right' });
+    doc.text('Registro de Evaluación Práctica · Permiso B', margin, 290);
   }
 
   doc.save(filenameFor(simulation));

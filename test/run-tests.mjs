@@ -4,7 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { countFaults, evaluateSimulation, levelName } from '../src/rules.js';
 import {
   extractSimulationsFromImport,
+  formatDateEs,
+  hasRunningTimers,
+  localTodayIso,
   normalizeImportedSimulation,
+  normalizeImportedStudent,
+  parseLocalDate,
+  pauseAllTimers,
   validateCatalog,
   validateCountdownMinutes,
   validateSimulationForPdf
@@ -145,6 +151,61 @@ test('Normalización de simulación importada rellena campos mínimos', () => {
   assertEqual(sim.id, 'sim_test');
   assert(Array.isArray(sim.faults), 'Las faltas deben quedar como array');
   assertEqual(sim.updatedAt, '2026-06-25T10:00:00.000Z');
+});
+
+test('Fechas locales sin desfase UTC', () => {
+  const local = new Date(2026, 5, 25, 0, 30, 0);
+  assertEqual(localTodayIso(local), '2026-06-25', 'Debe respetar fecha local de madrugada');
+  const parsed = parseLocalDate('2026-11-26');
+  assertEqual(parsed.getFullYear(), 2026);
+  assertEqual(parsed.getMonth(), 10);
+  assertEqual(parsed.getDate(), 26);
+  assert(formatDateEs('2026-11-26').includes('2026'), 'Debe formatear fecha española');
+});
+
+test('Pausa automática de cronómetros en marcha', () => {
+  const start = 1000;
+  const sim = normalizeImportedSimulation(
+    {
+      id: 'sim_timer',
+      status: 'draft',
+      timers: {
+        exam: { elapsedMs: 5000, running: true, startedAt: start },
+        parking: { elapsedMs: 0, running: false, startedAt: null, records: [] },
+        countdown: { durationMs: 60000, remainingMs: 60000, running: true, startedAt: start }
+      }
+    },
+    { makeId: () => 'id_1', nowIso: () => '2026-06-25T10:00:00.000Z' }
+  );
+  assert(hasRunningTimers(sim.timers), 'Debe detectar cronómetros activos');
+  const changed = pauseAllTimers(sim.timers, 3500);
+  assert(changed, 'Debe indicar que pausó cronómetros');
+  assert(!hasRunningTimers(sim.timers), 'Ningún cronómetro debe seguir corriendo');
+  assertEqual(sim.timers.exam.elapsedMs, 7500, 'Debe acumular tiempo transcurrido');
+  assertEqual(sim.timers.countdown.remainingMs, 57500, 'Debe descontar tiempo restante');
+});
+
+test('Simulación finalizada importada detiene cronómetros activos', () => {
+  const sim = normalizeImportedSimulation(
+    {
+      id: 'sim_fin',
+      status: 'finalized',
+      faults: [{ faultId: 10, tipo: 'INVALIDO', note: 'Nota' }],
+      timers: {
+        exam: { elapsedMs: 1000, running: true, startedAt: Date.now() - 2000 }
+      }
+    },
+    { makeId: () => 'f_1', nowIso: () => '2026-06-25T10:00:00.000Z' }
+  );
+  assert(!hasRunningTimers(sim.timers), 'Examen finalizado no puede tener cronómetros corriendo');
+  assertEqual(sim.faults[0].tipo, 'L', 'Tipo inválido se sanea a L');
+});
+
+test('Normalización de alumno importado descarta fichas vacías', () => {
+  assertEqual(normalizeImportedStudent({ name: '   ' }, { makeId: () => 's1', nowIso: () => '2026-01-01' }), null);
+  const stu = normalizeImportedStudent({ studentName: ' María López ', phone: '600123123' }, { makeId: () => 's1', nowIso: () => '2026-01-01' });
+  assertEqual(stu.name, 'María López');
+  assertEqual(stu.id, 's1');
 });
 
 console.log(`\nResultado: ${passed} tests correctos, ${failed} fallidos.\n`);
