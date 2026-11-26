@@ -92,7 +92,7 @@ function drawSectionTitle(doc, title, margin, y) {
   return y + 6.5;
 }
 
-export function downloadSimulationPdf(simulation, catalogById) {
+export function createSimulationPdfDoc(simulation, catalogById) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const result = evaluateSimulation(simulation.faults || []);
   const margin = 14;
@@ -116,7 +116,7 @@ export function downloadSimulationPdf(simulation, catalogById) {
   doc.text('Informe de simulación de circulación', margin, y);
 
   // Etiqueta de calificación a la derecha
-  doc.setFillColor(result.noApto ? 254 : 220, result.noApto ? 226 : 252, result.noApto ? 226 : 231);
+  doc.setFillColor(result.noApto ? 254 : 226, result.noApto ? 226 : 252, result.noApto ? 226 : 231);
   doc.roundedRect(152, y - 6, 44, 9.5, 1.5, 1.5, 'F');
   doc.setFontSize(12);
   doc.setTextColor(result.noApto ? 153 : 22, result.noApto ? 27 : 101, result.noApto ? 27 : 52);
@@ -211,14 +211,15 @@ export function downloadSimulationPdf(simulation, catalogById) {
       doc.addPage();
       y = 18;
     }
-    const data = item.snapshot || catalogById.get(item.faultId) || item;
+    const data = catalogById.get(item.faultId) || item.snapshot || item;
     const tipo = data.tipo || item.tipo || 'L';
+    const codePrefix = data.code ? `${data.code} ` : '';
     const title = data.falta || 'Falta';
     const block = data.bloque || '';
     const note = item.note ? `Nota del profesor: ${item.note}` : '';
 
     doc.setFont('helvetica', 'bold');
-    y = addWrapped(doc, `${index + 1}. [${tipo}] ${title}`, margin, y, 182, 5);
+    y = addWrapped(doc, `${index + 1}. [${codePrefix}${tipo}] ${title}`, margin, y, 182, 5);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(71, 85, 105);
@@ -249,5 +250,26 @@ export function downloadSimulationPdf(simulation, catalogById) {
     doc.text('Registro de Evaluación Práctica · Permiso B', margin, 290);
   }
 
-  doc.save(filenameFor(simulation));
+  return { doc, filename: filenameFor(simulation) };
+}
+
+export function downloadSimulationPdf(simulation, catalogById) {
+  const { doc, filename } = createSimulationPdfDoc(simulation, catalogById);
+  doc.save(filename);
+}
+
+export async function shareSimulationPdf(simulation, catalogById) {
+  const { doc, filename } = createSimulationPdfDoc(simulation, catalogById);
+  const blob = doc.output('blob');
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({
+      title: filename.replace(/\.pdf$/i, ''),
+      text: `Informe de evaluación práctica (${simulation.studentName || 'Permiso B'})`,
+      files: [file]
+    });
+    return 'shared';
+  }
+  doc.save(filename);
+  return 'downloaded';
 }

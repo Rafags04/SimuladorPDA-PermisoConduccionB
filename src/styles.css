@@ -107,7 +107,7 @@ h1, h2, h3, p {
   background: var(--navy);
   color: #ffffff;
   padding-top: var(--safe-top);
-  min-height: calc(38px + var(--safe-top));
+  min-height: calc(44px + var(--safe-top));
   display: flex;
   align-items: stretch;
   justify-content: space-between;
@@ -124,50 +124,85 @@ h1, h2, h3, p {
 .dgt-brand {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border-right: 1px solid rgba(255, 255, 255, 0.18);
-  flex-shrink: 0;
+  gap: 9px;
+  padding: 4px 12px;
+  min-width: 0;
 }
 
 .dgt-plate {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   background: #ffffff;
   color: var(--navy);
   font-weight: 900;
-  font-size: 13px;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid #ffffff;
+  flex-shrink: 0;
 }
 
-.dgt-system-name {
-  font-size: 11px;
+.dgt-context-title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 3px 8px;
+}
+
+.dgt-brand .dgt-context-title {
+  padding: 0;
+}
+
+.dgt-context-sub {
+  font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
+  color: #93c5fd;
+  line-height: 1.1;
 }
 
-.dgt-tabs {
+.dgt-context-title strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dgt-back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.dgt-back-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dgt-head-actions {
   display: flex;
   align-items: stretch;
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
-.dgt-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.dgt-tab {
+.dgt-head-link {
   background: transparent;
   border: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
   color: #cbd5e1;
-  padding: 0 11px;
-  min-height: 38px;
+  padding: 0 12px;
   font-size: 12.5px;
   font-weight: 700;
   white-space: nowrap;
@@ -175,14 +210,27 @@ h1, h2, h3, p {
   touch-action: manipulation;
 }
 
-.dgt-tab:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
-.dgt-tab.is-active {
+.dgt-head-link.is-active {
   background: var(--paper);
   color: var(--navy);
+}
+
+.dgt-save-btn {
+  background: #15803d;
+  border: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  padding: 0 13px;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.dgt-save-btn:hover {
+  background: #166534;
 }
 
 .dgt-new-btn {
@@ -190,18 +238,13 @@ h1, h2, h3, p {
   border: 0;
   border-left: 1px solid rgba(255, 255, 255, 0.25);
   color: #ffffff;
-  padding: 0 11px;
-  min-height: 38px;
-  font-size: 12px;
+  padding: 0 12px;
+  font-size: 12.5px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
   touch-action: manipulation;
-}
-
-.dgt-new-btn:active {
-  background: var(--navy-dark);
 }
 
 /* Fila 2: Cómputo L/D/E + Resultado + Cronómetro en vivo */
@@ -1433,6 +1476,10 @@ h1, h2, h3, p {
   font-weight: 600;
 }
 
+.off-fault-trow-4 {
+  grid-template-columns: 32px 54px 36px 1fr;
+}
+
 .official-notes-box {
   padding: 10px;
   min-height: 52px;
@@ -1441,8 +1488,21 @@ h1, h2, h3, p {
 }
 
 /* ==========================================================================
-   DIRECTORIO DE ALUMNOS Y ARCHIVO (TABLAS DE DATOS)
+   FLUJO 1: DIRECTORIO DE ALUMNOS (PANTALLA DE ENTRADA)
    ========================================================================== */
+.resume-banner {
+  background: #fffbeb;
+  border-bottom: 2px solid var(--def-line);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--def-fg);
+}
+
 .new-student-box {
   border-bottom: 2px solid var(--navy);
   background: #fafcff;
@@ -1458,76 +1518,293 @@ h1, h2, h3, p {
   flex-wrap: wrap;
 }
 
-.data-table {
+.form-action-between {
+  justify-content: space-between;
+}
+
+.filter-search-full {
+  border-right: 0;
+  flex-basis: 100%;
+}
+
+.student-directory {
   display: flex;
   flex-direction: column;
 }
 
-.data-thead {
+.dir-thead {
   background: var(--paper-alt);
   border-bottom: 1px solid var(--line);
-  padding: 6px 10px;
+  padding: 7px 12px;
   font-size: 10.5px;
   font-weight: 800;
   color: var(--muted);
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1.8fr 90px 110px 110px 110px;
+  gap: 10px;
 }
 
-.data-trow {
-  padding: 8px 10px;
+.dir-row {
+  padding: 11px 12px;
   border-bottom: 1px solid var(--line-soft);
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1.8fr 90px 110px 110px 110px;
+  gap: 10px;
   align-items: center;
+  cursor: pointer;
+  background: var(--paper);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.data-trow.is-active-row {
+.dir-row:hover {
   background: var(--blue-tint);
 }
 
-.students-cols {
-  grid-template-columns: 1.5fr 1.2fr 70px 90px auto;
+.dir-row:active {
+  background: #dbeafe;
 }
 
-.archive-cols {
-  grid-template-columns: 92px 1.6fr 105px 90px auto;
-}
-
-.cell-primary strong {
+.dir-main strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14.5px;
+  color: var(--ink);
 }
 
-.cell-primary small {
+.dir-main small {
   display: block;
-  font-size: 11.5px;
+  margin-top: 2px;
+  font-size: 12px;
   color: var(--muted);
 }
 
-.cell-secondary {
+.dir-stat {
+  font-size: 13px;
+}
+
+.dir-mobile-label {
+  display: none;
+  font-family: Arial, sans-serif;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dir-date {
   font-size: 12.5px;
   color: var(--ink-dim);
 }
 
-.cell-mono {
-  font-size: 12.5px;
+.dir-chevron {
+  text-align: right;
+  font-size: 12px;
   font-weight: 700;
+  color: var(--blue-tech);
 }
 
-.cell-actions {
+/* ==========================================================================
+   FLUJO 2: FICHA DEL ALUMNO Y LISTA DE EXÁMENES REALIZADOS
+   ========================================================================== */
+.student-summary-strip {
+  padding: 12px;
   display: flex;
-  gap: 5px;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--paper);
+}
+
+.student-summary-info {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.student-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.student-summary-top h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.student-summary-meta {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.student-notes-preview {
+  margin-top: 5px;
+  padding: 5px 8px;
+  background: var(--paper-alt);
+  border-left: 3px solid var(--line-dark);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+
+.student-edit-drawer {
+  border-top: 1px solid var(--line);
+  background: #fafcff;
+}
+
+.t-btn-lg {
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+}
+
+.exams-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-record {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.exam-record:last-child {
+  border-bottom: 0;
+}
+
+.exam-record.is-draft {
+  background: #fffdf5;
+  border-left: 4px solid var(--def-line);
+}
+
+.exam-record-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exam-record-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.exam-num {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12.5px;
+}
+
+.exam-zone {
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.draft-badge {
+  background: var(--def-bg);
+  color: var(--def-fg);
+  border: 1px solid var(--def-line);
+  padding: 1px 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.exam-record-metrics {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.metric-chip {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  background: var(--paper-alt);
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.metric-L { border-left: 3px solid #16a34a; }
+.metric-D { border-left: 3px solid #d97706; }
+.metric-E { border-left: 3px solid #dc2626; }
+
+.exam-record-reason {
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--elim-fg);
+}
+
+.exam-record-notes {
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.exam-record-actions {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.export-group,
+.manage-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   FLUJO 3: CABECERA COMPACTA Y PIE DE LA HOJA DE EVALUACIÓN
+   ========================================================================== */
+.exam-meta-strip {
+  display: grid;
+  grid-template-columns: 1fr 144px auto;
+  align-items: stretch;
+}
+
+.exam-zone-cell {
+  padding: 6px 10px;
+  border-right: 1px solid var(--line);
+}
+
+.meta-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.meta-grid-2 .meta-cell:nth-child(2n) {
+  border-right: 0;
+}
+
+.sheet-bottom-save {
+  padding: 12px;
+  background: var(--paper-alt);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .verdict-tag {
   display: inline-block;
-  padding: 2px 6px;
-  font-size: 11px;
+  padding: 2px 7px;
+  font-size: 11.5px;
   font-weight: 800;
   border: 1px solid;
+  white-space: nowrap;
 }
 
 .verdict-tag.is-apto {
@@ -1545,12 +1822,15 @@ h1, h2, h3, p {
 .open-flag {
   font-style: normal;
   font-size: 10.5px;
-  color: var(--blue-tech);
-  margin-left: 4px;
+  color: var(--def-fg);
+  background: var(--def-bg);
+  border: 1px solid var(--def-line);
+  padding: 1px 5px;
+  margin-left: 6px;
 }
 
 .backup-bar {
-  padding: 10px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1570,6 +1850,27 @@ h1, h2, h3, p {
   flex-wrap: wrap;
 }
 
+.empty-stage {
+  padding: 28px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-stage strong {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.empty-stage p {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 440px;
+  margin-bottom: 4px;
+}
+
 .empty-row {
   padding: 16px 12px;
   color: var(--muted);
@@ -1581,7 +1882,6 @@ h1, h2, h3, p {
   flex-wrap: wrap;
 }
 
-/* Aviso inferior discreto */
 .dgt-toast {
   position: fixed;
   right: 12px;
@@ -1599,15 +1899,6 @@ h1, h2, h3, p {
    RESPONSIVE MÓVIL (TELÉFONOS EN VERTICAL)
    ========================================================================== */
 @media (max-width: 760px) {
-  .dgt-system-name {
-    display: none;
-  }
-
-  .dgt-tab {
-    padding: 0 9px;
-    font-size: 12px;
-  }
-
   .inst-cell {
     min-width: 36px;
     padding: 0 5px;
@@ -1616,6 +1907,8 @@ h1, h2, h3, p {
   .inst-verdict {
     padding: 0 7px;
     font-size: 11px;
+    display: inline-flex;
+    align-items: center;
   }
 
   .inst-time {
@@ -1628,11 +1921,56 @@ h1, h2, h3, p {
     font-size: 11.5px;
   }
 
-  .candidate-strip {
+  /* Directorio de alumnos adaptado a teléfono */
+  .dir-thead {
+    display: none;
+  }
+
+  .dir-row {
+    grid-template-columns: 1fr auto;
+    gap: 5px 10px;
+    padding: 12px;
+  }
+
+  .dir-main {
+    grid-column: 1 / -1;
+  }
+
+  .dir-stat {
+    grid-column: 1;
+    font-size: 12.5px;
+  }
+
+  .dir-mobile-label {
+    display: inline;
+  }
+
+  .dir-date {
+    display: none;
+  }
+
+  .dir-verdict {
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .dir-chevron {
+    display: none;
+  }
+
+  .student-summary-cta {
+    width: 100%;
+  }
+
+  .student-summary-cta .t-btn {
+    width: 100%;
+  }
+
+  .exam-meta-strip {
     grid-template-columns: 1fr auto;
   }
 
-  .candidate-cell {
+  .exam-zone-cell {
     grid-column: 1 / -1;
     border-right: 0;
     border-bottom: 1px solid var(--line);
@@ -1643,6 +1981,7 @@ h1, h2, h3, p {
   }
 
   .meta-grid,
+  .meta-grid-2,
   .timers-table,
   .official-grid,
   .official-times-grid {
@@ -1696,27 +2035,23 @@ h1, h2, h3, p {
     width: 34px;
   }
 
-  /* Tablas de alumnos y archivo apiladas limpiamente en teléfono */
-  .data-thead {
-    display: none;
+  .exam-record-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .students-cols,
-  .archive-cols {
-    grid-template-columns: 1fr auto;
-    gap: 4px 8px;
+  .export-group,
+  .manage-group {
+    width: 100%;
   }
 
-  .students-cols .cell-primary,
-  .archive-cols .cell-primary {
-    grid-column: 1 / -1;
+  .export-group .t-btn,
+  .manage-group .t-btn {
+    flex: 1 1 auto;
   }
 
-  .students-cols .cell-actions,
-  .archive-cols .cell-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-    padding-top: 4px;
+  .sheet-bottom-save .t-btn {
+    width: 100%;
   }
 
   .official-form {
@@ -1729,8 +2064,9 @@ h1, h2, h3, p {
     display: none;
   }
 
-  .off-fault-trow {
-    grid-template-columns: 24px 46px 28px 1fr auto;
+  .off-fault-trow,
+  .off-fault-trow-4 {
+    grid-template-columns: 24px 46px 28px 1fr;
     gap: 6px;
     padding: 7px 8px;
   }

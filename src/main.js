@@ -15,7 +15,7 @@ import {
   putStudent
 } from './db.js';
 import { evaluateSimulation, levelName } from './rules.js';
-import { friendlyError, userError } from './userErrors.js';
+import { friendlyError } from './userErrors.js';
 import {
   extractSimulationsFromImport,
   formatDateEs,
@@ -35,7 +35,7 @@ import {
 const app = document.querySelector('#app');
 const DEFAULT_COUNTDOWN_MINUTES = 25;
 
-// Metadatos técnicos de los bloques del catálogo oficial DGT
+// Bloques oficiales numerados
 const BLOCK_SHORT_META = {
   '1. Comprobaciones previas': { code: '01', short: 'Comprobac.' },
   '2. Instalación': { code: '02', short: 'Instalación' },
@@ -56,7 +56,6 @@ const BLOCK_SHORT_META = {
   '15. Durante la prueba': { code: '15', short: 'Desarrollo' }
 };
 
-// Asignar códigos jerárquicos estilo hoja oficial (ej. 03.01, 07.12)
 const blockCounters = new Map();
 const enrichedCatalog = catalog.map((item) => {
   const meta = BLOCK_SHORT_META[item.bloque] || {
@@ -89,28 +88,31 @@ const uniqueBlocks = [];
   }
 }
 
+const canNativeShareFiles = typeof navigator !== 'undefined' && typeof navigator.canShare === 'function';
+
 const state = {
-  screen: 'sheet', // 'sheet' | 'acta' | 'students' | 'student-detail' | 'archive'
+  // Flujo lineal: 'students' -> 'student-detail' -> 'sheet' (evaluar) -> 'student-detail' | 'acta'
+  screen: 'students',
   current: null,
   currentPersisted: false,
   history: [],
   students: [],
   selectedStudentId: null,
+  showNewStudentForm: false,
+  showBackupsBar: false,
+  showStudentEdit: false,
   showHeaderMeta: false,
   showTimersDrawer: false,
   showBlockGrid: true,
-  showNewStudentForm: false,
   selectedBlock: 'ALL',
   query: '',
   filter: 'ALL',
   studentQuery: '',
-  historyQuery: '',
-  historyFilter: 'ALL',
   openBlocks: new Set([uniqueBlocks[0]?.bloque, uniqueBlocks[2]?.bloque].filter(Boolean)),
   openFault: null,
   toast: '',
   userAlert: null,
-  pdfBusy: false,
+  busyExamId: null,
   wakeLockEnabled: false,
   wakeLockSentinel: null,
   studentDraft: emptyStudentDraft()
@@ -234,8 +236,31 @@ function formatClock(ms, { showTenths = true } = {}) {
   return `${esc(base)}<span class="t-tenths">.${tenths}</span>`;
 }
 
+function formatPlainClock(ms) {
+  const safe = Math.max(0, Math.floor(Number(ms || 0)));
+  const totalSeconds = Math.floor(safe / 1000);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const ss = String(seconds).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 function countdownMinutes(timer) {
   return Math.max(1, Math.round(Number(timer?.durationMs || DEFAULT_COUNTDOWN_MINUTES * 60 * 1000) / 60000));
+}
+
+function isSimulationUntouched(sim) {
+  if (!sim) return true;
+  const noFaults = !sim.faults || sim.faults.length === 0;
+  const noMeta = !sim.zone?.trim() && !sim.teacher?.trim() && !sim.vehicle?.trim() && !sim.generalNotes?.trim();
+  const noTime = effectiveElapsed(sim.timers?.exam) === 0 &&
+    effectiveElapsed(sim.timers?.parking) === 0 &&
+    !(sim.timers?.parking?.records?.length) &&
+    !hasRunningTimers(sim.timers);
+  return noFaults && noMeta && noTime;
 }
 
 function playCountdownAlert() {
@@ -272,7 +297,7 @@ function playCountdownAlert() {
 
 async function syncWakeLock() {
   if (!('wakeLock' in navigator)) return;
-  const shouldHold = state.wakeLockEnabled && Boolean(state.current) && state.current.status !== 'finalized' && document.visibilityState === 'visible';
+  const shouldHold = state.wakeLockEnabled && state.screen === 'sheet' && Boolean(state.current) && document.visibilityState === 'visible';
   try {
     if (shouldHold && !state.wakeLockSentinel) {
       const sentinel = await navigator.wakeLock.request('screen');
@@ -285,7 +310,7 @@ async function syncWakeLock() {
       state.wakeLockSentinel = null;
     }
   } catch {
-    // Ignorar rechazo de wakeLock
+    // Ignorar rechazo
   }
 }
 
@@ -353,7 +378,7 @@ function setToast(message) {
       state.toast = '';
       const el = document.querySelector('#status-toast');
       if (el) el.innerHTML = '';
-    }, 2200);
+    }, 2300);
   }
 }
 
@@ -393,65 +418,125 @@ function severityBox(tipo) {
   return `<span class="sev-box sev-${safe}" title="Falta ${esc(levelName(safe))}">${safe}</span>`;
 }
 
-function topChromeHtml() {
-  ensureSimulationShape(state.current);
-  const sim = state.current;
-  const res = calculateCurrent();
-  const examTimer = sim.timers.exam;
-  const otherTimerActive = sim.timers.parking.running || sim.timers.countdown.running;
+/* ==========================================================================
+   CABECERAS CONTEXTUALES SEGÚN EL PASO DEL FLUJO
+   1. Alumnos -> 2. Alumno (Exámenes) -> 3. Evaluación (Hoja) / Acta
+   ========================================================================== */
+function topHeaderHtml() {
+  if (state.screen === 'sheet' && state.current) {
+    ensureSimulationShape(state.current);
+    const sim = state.current;
+    const res = calculateCurrent();
+    const examTimer = sim.timers.exam;
+    const otherTimerActive = sim.timers.parking.running || sim.timers.countdown.running;
 
-  const navTabs = [
-    ['sheet', 'Hoja'],
-    ['acta', 'Acta / PDF'],
-    ['students', `Alumnos (${state.students.length})`],
-    ['archive', `Archivo (${state.history.length})`]
-  ];
+    return `
+      <header class="dgt-chrome no-print">
+        <div class="dgt-Masthead">
+          <button type="button" class="dgt-back-btn" data-action="leave-exam" title="Volver a la ficha del alumno">
+            ‹ Alumno
+          </button>
+          <div class="dgt-context-title">
+            <span class="dgt-context-sub">EVALUANDO A</span>
+            <strong>${esc(sim.studentName || 'Alumno')}</strong>
+          </div>
+          <button type="button" class="dgt-save-btn" data-action="save-and-finish">
+            Guardar examen
+          </button>
+        </div>
 
+        <div class="dgt-instrument-bar" id="instrument-bar">
+          <div class="inst-counts">
+            <div class="inst-cell inst-L" title="Faltas leves (máx. 9)">
+              <span class="inst-k">L</span>
+              <strong class="inst-v" id="tally-L">${res.L}</strong>
+            </div>
+            <div class="inst-cell inst-D" title="Faltas deficientes (máx. 1)">
+              <span class="inst-k">D</span>
+              <strong class="inst-v" id="tally-D">${res.D}</strong>
+            </div>
+            <div class="inst-cell inst-E" title="Faltas eliminatorias (0)">
+              <span class="inst-k">E</span>
+              <strong class="inst-v" id="tally-E">${res.E}</strong>
+            </div>
+            <span class="inst-verdict ${res.noApto ? 'is-noapto' : 'is-apto'}" id="tally-verdict">
+              ${res.result}
+            </span>
+          </div>
+
+          <div class="inst-clock-group">
+            <span class="inst-time ${examTimer.running ? 'is-running' : ''}" data-timer-display="elapsed:exam:compact">${formatClock(effectiveElapsed(examTimer), { showTenths: false })}</span>
+            <button type="button" class="inst-btn ${examTimer.running ? 'is-stop' : 'is-start'}" id="top-exam-timer-btn" data-action="${examTimer.running ? 'timer-pause' : 'timer-start'}" data-timer="exam">
+              ${examTimer.running ? 'Parar' : 'Iniciar'}
+            </button>
+            <button type="button" class="inst-btn inst-btn-sub ${state.showTimersDrawer || otherTimerActive ? 'is-active' : ''}" data-action="toggle-timers">
+              Relojes ${state.showTimersDrawer ? '▴' : '▾'}
+            </button>
+          </div>
+        </div>
+      </header>
+    `;
+  }
+
+  if (state.screen === 'student-detail') {
+    const student = selectedStudent();
+    return `
+      <header class="dgt-chrome no-print">
+        <div class="dgt-Masthead">
+          <button type="button" class="dgt-back-btn" data-action="go-students">
+            ‹ Alumnos
+          </button>
+          <div class="dgt-context-title">
+            <span class="dgt-context-sub">EXPEDIENTE DE ALUMNO</span>
+            <strong id="header-student-name">${esc(student?.name || 'Ficha de alumno')}</strong>
+          </div>
+          ${student ? `
+            <button type="button" class="dgt-save-btn" data-action="new-exam-student" data-id="${esc(student.id)}">
+              + Nuevo examen
+            </button>
+          ` : ''}
+        </div>
+      </header>
+    `;
+  }
+
+  if (state.screen === 'acta') {
+    const studentId = state.current?.studentId || state.selectedStudentId;
+    return `
+      <header class="dgt-chrome no-print">
+        <div class="dgt-Masthead">
+          <button type="button" class="dgt-back-btn" data-action="${studentId ? 'back-to-student' : 'go-students'}">
+            ‹ ${studentId ? 'Exámenes del alumno' : 'Alumnos'}
+          </button>
+          <div class="dgt-context-title">
+            <span class="dgt-context-sub">ACTA DE EVALUACIÓN</span>
+            <strong>${esc(state.current?.studentName || 'Informe')}</strong>
+          </div>
+          <button type="button" class="dgt-new-btn" data-action="pdf-exam" data-id="${esc(state.current?.id || '')}">
+            Descargar PDF
+          </button>
+        </div>
+      </header>
+    `;
+  }
+
+  // Pantalla 1 por defecto: Lista de Alumnos
   return `
     <header class="dgt-chrome no-print">
       <div class="dgt-Masthead">
         <div class="dgt-brand">
           <span class="dgt-plate">B</span>
-          <span class="dgt-system-name">CALIFICACIÓN</span>
+          <div class="dgt-context-title">
+            <span class="dgt-context-sub">PERMISO DE CONDUCCIÓN B</span>
+            <strong>REGISTRO DE ALUMNOS</strong>
+          </div>
         </div>
-
-        <nav class="dgt-tabs" aria-label="Secciones">
-          ${navTabs.map(([id, label]) => `
-            <button type="button" class="dgt-tab ${state.screen === id || (id === 'students' && state.screen === 'student-detail') ? 'is-active' : ''}" data-action="screen" data-screen="${id}">
-              ${esc(label)}
-            </button>
-          `).join('')}
-        </nav>
-
-        <button type="button" class="dgt-new-btn" data-action="new-sheet" title="Abrir hoja en blanco nueva">+ Nueva</button>
-      </div>
-
-      <div class="dgt-instrument-bar" id="instrument-bar">
-        <div class="inst-counts">
-          <div class="inst-cell inst-L" title="Faltas leves (máx. 9)">
-            <span class="inst-k">L</span>
-            <strong class="inst-v" id="tally-L">${res.L}</strong>
-          </div>
-          <div class="inst-cell inst-D" title="Faltas deficientes (máx. 1)">
-            <span class="inst-k">D</span>
-            <strong class="inst-v" id="tally-D">${res.D}</strong>
-          </div>
-          <div class="inst-cell inst-E" title="Faltas eliminatorias (0)">
-            <span class="inst-k">E</span>
-            <strong class="inst-v" id="tally-E">${res.E}</strong>
-          </div>
-          <button type="button" class="inst-verdict ${res.noApto ? 'is-noapto' : 'is-apto'}" id="tally-verdict" data-action="screen" data-screen="acta" title="Ver acta completa">
-            ${res.result}
+        <div class="dgt-head-actions">
+          <button type="button" class="dgt-head-link ${state.showBackupsBar ? 'is-active' : ''}" data-action="toggle-backups">
+            Copias ${state.showBackupsBar ? '▴' : '▾'}
           </button>
-        </div>
-
-        <div class="inst-clock-group">
-          <span class="inst-time ${examTimer.running ? 'is-running' : ''}" data-timer-display="elapsed:exam:compact">${formatClock(effectiveElapsed(examTimer), { showTenths: false })}</span>
-          <button type="button" class="inst-btn ${examTimer.running ? 'is-stop' : 'is-start'}" id="top-exam-timer-btn" data-action="${examTimer.running ? 'timer-pause' : 'timer-start'}" data-timer="exam">
-            ${examTimer.running ? 'Parar' : 'Iniciar'}
-          </button>
-          <button type="button" class="inst-btn inst-btn-sub ${state.showTimersDrawer || otherTimerActive ? 'is-active' : ''}" data-action="toggle-timers" title="Mostrar cronómetro de maniobra y cuenta atrás">
-            Relojes ${state.showTimersDrawer ? '▴' : '▾'}
+          <button type="button" class="dgt-save-btn" data-action="toggle-new-student">
+            ${state.showNewStudentForm ? 'Cerrar alta' : '+ Nuevo alumno'}
           </button>
         </div>
       </div>
@@ -459,6 +544,308 @@ function topChromeHtml() {
   `;
 }
 
+/* ==========================================================================
+   PANTALLA 1: LISTA DE ALUMNOS (ENTRADA A LA APLICACIÓN)
+   ========================================================================== */
+function studentsRowsInnerHtml() {
+  const q = normalise(state.studentQuery).trim();
+  const rows = state.students.filter((s) => {
+    if (!q) return true;
+    return normalise(`${s.name} ${s.phone} ${s.email} ${s.notes}`).includes(q);
+  });
+
+  if (!rows.length) {
+    if (!state.students.length) {
+      return `
+        <div class="empty-stage">
+          <strong>No hay alumnos registrados todavía</strong>
+          <p>Pulsa «+ Nuevo alumno» para crear el primer alumno y comenzar a registrar sus exámenes prácticos.</p>
+          <button type="button" class="t-btn t-btn-primary" data-action="open-new-student">+ Crear primer alumno</button>
+        </div>
+      `;
+    }
+    return `<div class="empty-row">Ningún alumno coincide con «${esc(state.studentQuery)}».</div>`;
+  }
+
+  return `
+    <div class="student-directory">
+      <div class="dir-thead">
+        <span>ALUMNO / EXPEDIENTE</span>
+        <span>EXÁMENES</span>
+        <span>ÚLTIMO EXAMEN</span>
+        <span>CALIFICACIÓN</span>
+        <span></span>
+      </div>
+      ${rows.map((s) => {
+        const exams = simulationsForStudent(s.id);
+        const latest = exams[0];
+        const latestRes = latest ? evaluateSimulation(latest.faults || []) : null;
+        const openDraft = exams.find((e) => e.status !== 'finalized');
+
+        return `
+          <div class="dir-row" data-action="view-student" data-id="${esc(s.id)}" role="button" tabindex="0">
+            <div class="dir-main">
+              <strong>
+                ${esc(s.name)}
+                ${openDraft ? '<em class="open-flag">[EXAMEN EN CURSO]</em>' : ''}
+              </strong>
+              <small>${esc([s.phone, s.email, s.notes ? s.notes.slice(0, 55) : ''].filter(Boolean).join(' · ') || 'Sin datos de contacto')}</small>
+            </div>
+            <div class="dir-stat mono">
+              <strong>${exams.length}</strong> <span class="dir-mobile-label">exám.</span>
+            </div>
+            <div class="dir-date mono">
+              ${latest ? formatDateEs(latest.date) : '<span class="text-muted">—</span>'}
+            </div>
+            <div class="dir-verdict">
+              ${latestRes
+                ? `<span class="verdict-tag ${latestRes.noApto ? 'is-noapto' : 'is-apto'}">${latestRes.result}</span>`
+                : '<span class="text-muted">Sin evaluar</span>'}
+            </div>
+            <div class="dir-chevron" aria-hidden="true">Ver exámenes ›</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function studentsView() {
+  const draft = state.studentDraft;
+  const openDraftSim = state.history.find((sim) => sim.status !== 'finalized' && sim.studentId);
+
+  return `
+    <main class="dgt-sheet">
+      ${state.showBackupsBar ? `
+        <section class="form-section backups-drawer">
+          <div class="section-bar">
+            <span>COPIAS DE SEGURIDAD (ALMACENAMIENTO LOCAL DEL DISPOSITIVO)</span>
+            <button type="button" class="bar-toggle-btn" data-action="toggle-backups">Cerrar</button>
+          </div>
+          <div class="backup-bar">
+            <span class="backup-note">
+              ${state.students.length} alumno(s) y ${state.history.length} examen(es) guardados en este navegador. Exporta una copia JSON periódica de respaldo.
+            </span>
+            <div class="backup-buttons">
+              <button type="button" class="t-btn t-btn-primary" data-action="export-all">Exportar todo (.json)</button>
+              <label class="t-btn file-upload-btn" for="import-json-file">Importar copia (.json)</label>
+              <input id="import-json-file" type="file" accept="application/json,.json" data-import="json" class="sr-only-input" />
+            </div>
+          </div>
+        </section>
+      ` : ''}
+
+      ${openDraftSim ? `
+        <div class="resume-banner">
+          <div>
+            <strong>Examen en curso sin cerrar:</strong> ${esc(openDraftSim.studentName || 'Alumno')} (${formatDateEs(openDraftSim.date)})
+          </div>
+          <button type="button" class="t-btn t-btn-primary" data-action="edit-simulation" data-id="${esc(openDraftSim.id)}">Continuar evaluación ›</button>
+        </div>
+      ` : ''}
+
+      ${state.showNewStudentForm ? `
+        <section class="form-section new-student-box">
+          <div class="section-bar">ALTA DE NUEVO ALUMNO</div>
+          <div class="meta-grid">
+            <div class="meta-cell">
+              <label class="cell-label" for="new-student-name">APELLIDOS Y NOMBRE *</label>
+              <input id="new-student-name" type="text" class="bare-input" data-student-draft="name" value="${esc(draft.name)}" placeholder="Ej.: García López, María" autocomplete="off" />
+            </div>
+            <div class="meta-cell">
+              <label class="cell-label">TELÉFONO</label>
+              <input type="tel" class="bare-input" data-student-draft="phone" value="${esc(draft.phone)}" placeholder="600 000 000" inputmode="tel" autocomplete="off" />
+            </div>
+            <div class="meta-cell">
+              <label class="cell-label">CORREO ELECTRÓNICO</label>
+              <input type="email" class="bare-input" data-student-draft="email" value="${esc(draft.email)}" placeholder="Opcional" inputmode="email" autocomplete="off" />
+            </div>
+            <div class="meta-cell meta-cell-full">
+              <label class="cell-label">OBSERVACIONES DEL ALUMNO</label>
+              <textarea class="bare-textarea" rows="2" data-student-draft="notes" placeholder="Horario, tipo de cambio, anotaciones...">${esc(draft.notes)}</textarea>
+            </div>
+          </div>
+          <div class="form-action-bar">
+            <button type="button" class="t-btn" data-action="toggle-new-student">Cancelar</button>
+            <button type="button" class="t-btn" data-action="create-student">Guardar alumno</button>
+            <button type="button" class="t-btn t-btn-go" data-action="create-student-and-exam">Guardar y empezar examen</button>
+          </div>
+        </section>
+      ` : ''}
+
+      <section class="form-section">
+        <div class="section-bar">
+          <span>SELECCIONA UN ALUMNO (${state.students.length})</span>
+        </div>
+        ${state.students.length > 0 ? `
+          <div class="filter-toolbar">
+            <div class="filter-search filter-search-full">
+              <input type="search" data-search="students" value="${esc(state.studentQuery)}" placeholder="Buscar alumno por nombre o teléfono..." autocomplete="off" />
+              ${state.studentQuery ? '<button type="button" class="clear-x" data-action="clear-student-query" aria-label="Limpiar">×</button>' : ''}
+            </div>
+          </div>
+        ` : ''}
+
+        <div id="student-results-container">
+          ${studentsRowsInnerHtml()}
+        </div>
+      </section>
+    </main>
+  `;
+}
+
+/* ==========================================================================
+   PANTALLA 2: FICHA DEL ALUMNO + LISTA DE SUS EXÁMENES REALIZADOS
+   ========================================================================== */
+function studentDetailView() {
+  const student = selectedStudent();
+  if (!student) {
+    return `
+      <main class="dgt-sheet">
+        <div class="empty-stage">
+          <strong>Alumno no seleccionado</strong>
+          <button type="button" class="t-btn t-btn-primary" data-action="go-students">Ir a la lista de alumnos</button>
+        </div>
+      </main>
+    `;
+  }
+
+  const exams = simulationsForStudent(student.id);
+  const finalizedCount = exams.filter((e) => e.status === 'finalized').length;
+  const aptosCount = exams.filter((e) => !evaluateSimulation(e.faults || []).noApto).length;
+
+  return `
+    <main class="dgt-sheet">
+      <section class="form-section">
+        <div class="student-summary-strip">
+          <div class="student-summary-info">
+            <div class="student-summary-top">
+              <h2>${esc(student.name)}</h2>
+              <button type="button" class="t-tag-btn" data-action="toggle-student-edit">
+                ${state.showStudentEdit ? 'Ocultar ficha ▴' : 'Editar datos ▾'}
+              </button>
+            </div>
+            <p class="student-summary-meta">
+              ${esc([student.phone, student.email].filter(Boolean).join(' · ') || 'Sin teléfono / email')}
+              · <strong>${exams.length}</strong> ${exams.length === 1 ? 'examen' : 'exámenes'}
+              ${exams.length > 0 ? `(${aptosCount} apto${aptosCount === 1 ? '' : 's'} / ${exams.length - aptosCount} no apto${exams.length - aptosCount === 1 ? '' : 's'})` : ''}
+            </p>
+            ${student.notes && !state.showStudentEdit ? `<p class="student-notes-preview">${esc(student.notes)}</p>` : ''}
+          </div>
+          <div class="student-summary-cta">
+            <button type="button" class="t-btn t-btn-go t-btn-lg" data-action="new-exam-student" data-id="${esc(student.id)}">
+              + Nuevo examen
+            </button>
+          </div>
+        </div>
+
+        ${state.showStudentEdit ? `
+          <div class="student-edit-drawer">
+            <div class="meta-grid">
+              <div class="meta-cell">
+                <label class="cell-label">APELLIDOS Y NOMBRE</label>
+                <input type="text" class="bare-input" data-student-field="name" data-id="${esc(student.id)}" value="${esc(student.name)}" autocomplete="off" />
+              </div>
+              <div class="meta-cell">
+                <label class="cell-label">TELÉFONO</label>
+                <input type="tel" class="bare-input" data-student-field="phone" data-id="${esc(student.id)}" value="${esc(student.phone)}" inputmode="tel" autocomplete="off" />
+              </div>
+              <div class="meta-cell">
+                <label class="cell-label">CORREO ELECTRÓNICO</label>
+                <input type="email" class="bare-input" data-student-field="email" data-id="${esc(student.id)}" value="${esc(student.email)}" inputmode="email" autocomplete="off" />
+              </div>
+              <div class="meta-cell meta-cell-full">
+                <label class="cell-label">NOTAS DEL ALUMNO</label>
+                <textarea class="bare-textarea" rows="2" data-student-field="notes" data-id="${esc(student.id)}" placeholder="Observaciones del alumno...">${esc(student.notes)}</textarea>
+              </div>
+            </div>
+            <div class="form-action-bar form-action-between">
+              <button type="button" class="t-btn t-btn-danger-text" data-action="delete-student" data-id="${esc(student.id)}">Eliminar alumno y su ficha</button>
+              <button type="button" class="t-btn" data-action="toggle-student-edit">Listo</button>
+            </div>
+          </div>
+        ` : ''}
+      </section>
+
+      <section class="form-section">
+        <div class="section-bar">
+          <span>EXÁMENES REALIZADOS POR EL ALUMNO (${exams.length}${finalizedCount < exams.length ? ` · ${exams.length - finalizedCount} en curso` : ''})</span>
+          ${exams.length > 0 ? `<button type="button" class="bar-toggle-btn" data-action="export-student-json" data-id="${esc(student.id)}">Exportar alumno (.json)</button>` : ''}
+        </div>
+
+        ${exams.length ? `
+          <div class="exams-list">
+            ${exams.map((sim, idx) => studentExamRowHtml(sim, exams.length - idx)).join('')}
+          </div>
+        ` : `
+          <div class="empty-stage">
+            <strong>Este alumno aún no tiene exámenes registrados</strong>
+            <p>Pulsa «+ Nuevo examen» para abrir la hoja de calificación, evaluar su circulación y guardarla aquí.</p>
+            <button type="button" class="t-btn t-btn-go" data-action="new-exam-student" data-id="${esc(student.id)}">+ Iniciar primer examen</button>
+          </div>
+        `}
+      </section>
+    </main>
+  `;
+}
+
+function studentExamRowHtml(sim, examNumber) {
+  const res = evaluateSimulation(sim.faults || []);
+  const durationMs = effectiveElapsed(sim.timers?.exam);
+  const isDraft = sim.status !== 'finalized';
+  const isBusy = state.busyExamId === sim.id;
+
+  return `
+    <article class="exam-record ${isDraft ? 'is-draft' : ''}">
+      <div class="exam-record-top">
+        <div class="exam-record-title">
+          <span class="exam-num mono">#${String(examNumber).padStart(2, '0')}</span>
+          <strong class="mono">${formatDateEs(sim.date)}</strong>
+          ${sim.zone ? `<span class="exam-zone">· ${esc(sim.zone)}</span>` : ''}
+          ${isDraft ? '<span class="draft-badge">EN CURSO</span>' : ''}
+        </div>
+        <span class="verdict-tag ${res.noApto ? 'is-noapto' : 'is-apto'}">${res.result}</span>
+      </div>
+
+      <div class="exam-record-metrics">
+        <span class="metric-chip metric-L"><b>${res.L}</b> Leves</span>
+        <span class="metric-chip metric-D"><b>${res.D}</b> Defic.</span>
+        <span class="metric-chip metric-E"><b>${res.E}</b> Elimin.</span>
+        ${durationMs > 0 ? `<span class="metric-chip mono">Tiempo: ${esc(formatPlainClock(durationMs))}</span>` : ''}
+        ${sim.vehicle ? `<span class="metric-chip">Vehículo: ${esc(sim.vehicle)}</span>` : ''}
+      </div>
+
+      ${res.reasons.length ? `<p class="exam-record-reason">Causa No Apto: ${esc(res.reasons.join(' · '))}</p>` : ''}
+      ${sim.generalNotes ? `<p class="exam-record-notes">${esc(sim.generalNotes)}</p>` : ''}
+
+      <div class="exam-record-actions">
+        <div class="export-group">
+          <button type="button" class="t-btn t-btn-primary" data-action="pdf-exam" data-id="${esc(sim.id)}" ${isBusy ? 'disabled' : ''}>
+            ${isBusy ? 'Generando...' : 'Descargar PDF'}
+          </button>
+          ${canNativeShareFiles ? `
+            <button type="button" class="t-btn" data-action="share-pdf-exam" data-id="${esc(sim.id)}" ${isBusy ? 'disabled' : ''}>
+              Compartir PDF
+            </button>
+          ` : ''}
+          <button type="button" class="t-btn" data-action="open-acta" data-id="${esc(sim.id)}">Ver acta / Imprimir</button>
+          <button type="button" class="t-btn" data-action="csv-exam" data-id="${esc(sim.id)}">CSV</button>
+        </div>
+
+        <div class="manage-group">
+          <button type="button" class="t-btn ${isDraft ? 't-btn-go' : ''}" data-action="edit-simulation" data-id="${esc(sim.id)}">
+            ${isDraft ? 'Continuar evaluación' : 'Editar'}
+          </button>
+          <button type="button" class="t-btn t-btn-danger-text" data-action="delete" data-id="${esc(sim.id)}">Borrar</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+/* ==========================================================================
+   PANTALLA 3: HOJA DE EVALUACIÓN (CREAR / EVALUAR EXAMEN DEL ALUMNO)
+   ========================================================================== */
 function timersDrawerHtml() {
   if (!state.showTimersDrawer) return '';
   const { exam, parking, countdown } = state.current.timers;
@@ -607,60 +994,37 @@ function refreshTimerControls(key) {
   }
 }
 
-function sheetHeaderFormHtml() {
+function sheetExamMetaHtml() {
   const sim = state.current;
-  const linkedStudent = sim.studentId ? state.students.find((s) => s.id === sim.studentId) : null;
-
   return `
     <section class="form-section">
-      <div class="candidate-strip">
-        <div class="candidate-cell">
-          <label class="cell-label" for="sheet-student-input">ASPIRANTE / ALUMNO</label>
-          <div class="candidate-input-row">
-            <input
-              id="sheet-student-input"
-              type="text"
-              class="bare-input"
-              data-field="studentName"
-              value="${esc(sim.studentName)}"
-              placeholder="Escribir apellidos y nombre o elegir..."
-              list="dgt-students-datalist"
-              autocomplete="off"
-            />
-            <datalist id="dgt-students-datalist">
-              ${state.students.map((s) => `<option value="${esc(s.name)}"></option>`).join('')}
-            </datalist>
-            ${linkedStudent ? `<button type="button" class="t-tag-btn" data-action="view-student" data-id="${esc(linkedStudent.id)}" title="Abrir expediente del alumno">Ficha</button>` : ''}
-          </div>
+      <div class="exam-meta-strip">
+        <div class="exam-zone-cell">
+          <label class="cell-label" for="sheet-zone-input">ZONA / RECORRIDO</label>
+          <input id="sheet-zone-input" type="text" class="bare-input" data-field="zone" value="${esc(sim.zone)}" placeholder="Ej.: Zona 2 / Centro exámenes" autocomplete="off" />
         </div>
-
         <div class="date-cell">
           <label class="cell-label" for="sheet-date-input">FECHA</label>
           <input id="sheet-date-input" type="date" class="bare-input" data-field="date" value="${esc(sim.date)}" />
         </div>
-
         <button type="button" class="expand-meta-btn ${state.showHeaderMeta ? 'is-open' : ''}" data-action="toggle-header-meta">
-          Datos ${state.showHeaderMeta ? '▴' : '▾'}
+          Notas / Vehículo ${state.showHeaderMeta ? '▴' : '▾'}
         </button>
       </div>
 
       ${state.showHeaderMeta ? `
-        <div class="meta-grid">
-          <div class="meta-cell">
-            <label class="cell-label">ZONA / RECORRIDO</label>
-            <input type="text" class="bare-input" data-field="zone" value="${esc(sim.zone)}" placeholder="Ej.: Ruta 4 / Móstoles" autocomplete="off" />
-          </div>
+        <div class="meta-grid meta-grid-2">
           <div class="meta-cell">
             <label class="cell-label">MATRÍCULA / VEHÍCULO</label>
-            <input type="text" class="bare-input" data-field="vehicle" value="${esc(sim.vehicle)}" placeholder="Ej.: 0000-BBB" autocomplete="off" />
+            <input type="text" class="bare-input" data-field="vehicle" value="${esc(sim.vehicle)}" placeholder="Ej.: 1234-MNP" autocomplete="off" />
           </div>
           <div class="meta-cell">
             <label class="cell-label">PROFESOR / EVALUADOR</label>
             <input type="text" class="bare-input" data-field="teacher" value="${esc(sim.teacher)}" placeholder="Nombre evaluador" autocomplete="off" />
           </div>
           <div class="meta-cell meta-cell-full">
-            <label class="cell-label">OBSERVACIONES GENERALES DE LA PRUEBA</label>
-            <textarea class="bare-textarea" rows="2" data-field="generalNotes" placeholder="Anotaciones generales del desarrollo de la circulación...">${esc(sim.generalNotes)}</textarea>
+            <label class="cell-label">OBSERVACIONES GENERALES DEL EXAMEN</label>
+            <textarea class="bare-textarea" rows="2" data-field="generalNotes" placeholder="Valoración general de la prueba...">${esc(sim.generalNotes)}</textarea>
           </div>
         </div>
       ` : ''}
@@ -675,15 +1039,15 @@ function markedFaultsInlineHtml() {
   return `
     <details class="form-section marked-strip">
       <summary class="section-bar clickable-bar">
-        <span>FALTAS IMPUTADAS EN ESTA PRUEBA (${faults.length})</span>
-        <span class="bar-hint">Desplegar / corregir ▾</span>
+        <span>FALTAS ANOTADAS EN ESTE EXAMEN (${faults.length})</span>
+        <span class="bar-hint">Revisar / quitar ▾</span>
       </summary>
       <div class="marked-table">
         ${faults.map((f, idx) => {
           const cat = f.faultId != null ? catalogById.get(f.faultId) : null;
           const data = cat || f.snapshot || f;
           const tipo = data.tipo || f.tipo || 'L';
-          const code = cat?.code || String(data.bloque || '').split('.')[0] || '—';
+          const code = cat?.code || '—';
           return `
             <div class="marked-row">
               <span class="marked-code mono">${esc(code)}</span>
@@ -692,15 +1056,13 @@ function markedFaultsInlineHtml() {
                 <span>${esc(data.falta || 'Falta')}</span>
                 ${f.note ? `<small class="marked-note-inline">Nota: ${esc(f.note)}</small>` : ''}
               </div>
-              <button type="button" class="t-btn t-btn-danger-text" data-action="remove-fault" data-index="${idx}" title="Anular esta falta">Quitar</button>
+              <button type="button" class="t-btn t-btn-danger-text" data-action="remove-fault" data-index="${idx}">Quitar</button>
             </div>
           `;
         }).join('')}
         <div class="marked-footer">
-          <button type="button" class="t-btn" data-action="clear-current">Anular todas</button>
-          <div class="marked-footer-right">
-            <button type="button" class="t-btn t-btn-primary" data-action="screen" data-screen="acta">Abrir Acta / PDF</button>
-          </div>
+          <button type="button" class="t-btn" data-action="clear-current">Vaciar faltas</button>
+          <button type="button" class="t-btn t-btn-go" data-action="save-and-finish">Guardar examen</button>
         </div>
       </div>
     </details>
@@ -716,7 +1078,7 @@ function blockMatrixHtml() {
       <div class="section-bar">
         <span>BLOQUES DE CALIFICACIÓN (1 – 15)</span>
         <button type="button" class="bar-toggle-btn" data-action="toggle-block-grid">
-          ${state.showBlockGrid ? 'Ocultar cuadrícula ▴' : 'Mostrar cuadrícula ▾'}
+          ${state.showBlockGrid ? 'Ocultar bloques ▴' : 'Mostrar bloques ▾'}
         </button>
       </div>
       ${state.showBlockGrid ? `
@@ -759,10 +1121,10 @@ function filterToolbarHtml() {
           id="catalog-search-input"
           data-search="faults"
           value="${esc(state.query)}"
-          placeholder="Filtrar por código (ej. 07.) o texto (intermitente, retrovisor, ceda...)"
+          placeholder="Buscar falta o código (ej. 07., retrovisor, intermitente...)"
           autocomplete="off"
         />
-        ${state.query ? '<button type="button" class="clear-x" data-action="clear-fault-query" aria-label="Limpiar texto">×</button>' : ''}
+        ${state.query ? '<button type="button" class="clear-x" data-action="clear-fault-query" aria-label="Limpiar">×</button>' : ''}
       </div>
       <div class="filter-sev-group" role="group" aria-label="Filtrar gravedad">
         ${severities.map(([code, label]) => `
@@ -781,7 +1143,6 @@ function filteredCatalogGroups() {
   const blockFilter = state.selectedBlock;
 
   const rows = enrichedCatalog.filter((item) => {
-    // Si hay texto en el buscador, buscar en todos los bloques para no ocultar resultados
     if (!query && blockFilter !== 'ALL' && item.bloque !== blockFilter) return false;
     if (filter !== 'ALL' && item.tipo !== filter) return false;
     if (!query) return true;
@@ -805,8 +1166,8 @@ function catalogTableInnerHtml() {
   if (!groups.size) {
     return `
       <div class="empty-row">
-        <span>No hay criterios que coincidan con el filtro seleccionado.</span>
-        <button type="button" class="t-btn" data-action="reset-fault-filters">Mostrar todos los bloques</button>
+        <span>No hay criterios que coincidan con el filtro.</span>
+        <button type="button" class="t-btn" data-action="reset-fault-filters">Restablecer filtros</button>
       </div>
     `;
   }
@@ -837,7 +1198,7 @@ function catalogTableInnerHtml() {
 
             return `
               <div class="dgt-fault-row ${count > 0 ? `is-marked is-marked-${item.tipo}` : ''}" data-fault-row="${item.id}">
-                <button type="button" class="fault-cell-info" data-action="open-fault" data-id="${item.id}" title="Pulsar para añadir con nota detallada">
+                <button type="button" class="fault-cell-info" data-action="open-fault" data-id="${item.id}" title="Pulsar para añadir con observación">
                   <span class="fault-cell-code">
                     <span class="mono code-num">${esc(item.code)}</span>
                     ${severityBox(item.tipo)}
@@ -866,10 +1227,14 @@ function catalogTableInnerHtml() {
 }
 
 function sheetView() {
+  if (!state.current) {
+    navigateTo('students');
+    return '';
+  }
   return `
     <main class="dgt-sheet">
       ${timersDrawerHtml()}
-      ${sheetHeaderFormHtml()}
+      ${sheetExamMetaHtml()}
       <div id="marked-faults-slot">${markedFaultsInlineHtml()}</div>
       <div id="block-matrix-slot">${blockMatrixHtml()}</div>
       <section class="form-section catalog-section">
@@ -878,6 +1243,12 @@ function sheetView() {
           ${catalogTableInnerHtml()}
         </div>
       </section>
+
+      <div class="sheet-bottom-save no-print">
+        <button type="button" class="t-btn" data-action="leave-exam">‹ Volver al alumno</button>
+        <button type="button" class="t-btn t-btn-go t-btn-lg" data-action="save-and-finish">Guardar examen y ver historial del alumno</button>
+      </div>
+
       ${faultNoteModalHtml()}
     </main>
   `;
@@ -907,7 +1278,7 @@ function faultNoteModalHtml() {
         ${item.obs ? `<p class="modal-criterion">${esc(item.obs)}</p>` : ''}
 
         <label class="cell-label mt-10" for="fault-note">OBSERVACIÓN ESPECÍFICA (PUNTO DEL RECORRIDO / DETALLE)</label>
-        <textarea id="fault-note" class="bare-textarea framed-input" rows="3" placeholder="Ej.: Glorieta salida 2, no cede paso a vehículo prioritario..."></textarea>
+        <textarea id="fault-note" class="bare-textarea framed-input" rows="3" placeholder="Ej.: Glorieta salida 2, no cede paso..."></textarea>
 
         <div class="modal-actions">
           <button type="button" class="t-btn" data-action="close-sheet">Cancelar</button>
@@ -918,27 +1289,33 @@ function faultNoteModalHtml() {
   `;
 }
 
+/* ==========================================================================
+   PANTALLA 4: VISTA DE ACTA OFICIAL / IMPRESIÓN / EXPORTACIÓN
+   ========================================================================== */
 function actaView() {
+  if (!state.current) {
+    navigateTo('students');
+    return '';
+  }
   ensureSimulationShape(state.current);
   const sim = state.current;
-  const res = calculateCurrent();
+  const res = evaluateSimulation(sim.faults || []);
   const timers = sim.timers;
   const records = timers.parking?.records || [];
+  const isBusy = state.busyExamId === sim.id;
 
   return `
     <main class="dgt-sheet acta-sheet">
       <div class="acta-toolbar no-print">
-        <button type="button" class="t-btn" data-action="screen" data-screen="sheet">‹ Volver a la Hoja</button>
+        <button type="button" class="t-btn" data-action="edit-simulation" data-id="${esc(sim.id)}">Editar evaluación</button>
         <div class="acta-toolbar-right">
-          <button type="button" class="t-btn t-btn-primary" data-action="pdf" ${state.pdfBusy ? 'disabled' : ''}>
-            ${state.pdfBusy ? 'Generando...' : 'Descargar PDF'}
+          <button type="button" class="t-btn t-btn-primary" data-action="pdf-exam" data-id="${esc(sim.id)}" ${isBusy ? 'disabled' : ''}>
+            ${isBusy ? 'Generando...' : 'Descargar PDF'}
           </button>
-          <button type="button" class="t-btn" data-action="print">Imprimir acta</button>
-          ${sim.status === 'finalized' ? `
-            <button type="button" class="t-btn" data-action="reopen">Reabrir edición</button>
-          ` : `
-            <button type="button" class="t-btn t-btn-go" data-action="finalize">Cerrar acta</button>
-          `}
+          ${canNativeShareFiles ? `<button type="button" class="t-btn" data-action="share-pdf-exam" data-id="${esc(sim.id)}">Compartir PDF</button>` : ''}
+          <button type="button" class="t-btn" data-action="csv-exam" data-id="${esc(sim.id)}">Exportar CSV</button>
+          <button type="button" class="t-btn" data-action="json-exam" data-id="${esc(sim.id)}">Exportar JSON</button>
+          <button type="button" class="t-btn" data-action="print">Imprimir</button>
         </div>
       </div>
 
@@ -948,7 +1325,7 @@ function actaView() {
             <strong>ACTA DE EVALUACIÓN · PRUEBA PRÁCTICA DE CIRCULACIÓN</strong>
             <span>PERMISO DE CONDUCCIÓN CLASE B</span>
           </div>
-          <span class="official-state-tag">${sim.status === 'finalized' ? 'ACTA CERRADA' : 'EN CURSO'}</span>
+          <span class="official-state-tag">${sim.status === 'finalized' ? 'FINALIZADO' : 'EN CURSO'}</span>
         </div>
 
         <div class="official-grid">
@@ -1007,15 +1384,15 @@ function actaView() {
         <div class="official-times-grid">
           <div class="off-cell">
             <span class="cell-label">DURACIÓN CIRCULACIÓN</span>
-            <strong class="mono" data-timer-display="elapsed:exam">${formatClock(effectiveElapsed(timers.exam))}</strong>
+            <strong class="mono">${formatClock(effectiveElapsed(timers.exam))}</strong>
           </div>
           <div class="off-cell">
             <span class="cell-label">${esc((timers.parking?.label || 'MANIOBRA').toUpperCase())}</span>
-            <strong class="mono" data-timer-display="elapsed:parking">${formatClock(effectiveElapsed(timers.parking))}</strong>
+            <strong class="mono">${formatClock(effectiveElapsed(timers.parking))}</strong>
           </div>
           <div class="off-cell">
             <span class="cell-label">CUENTA ATRÁS RESTANTE</span>
-            <strong class="mono" data-timer-display="remaining:countdown">${formatClock(effectiveRemaining(timers.countdown))}</strong>
+            <strong class="mono">${formatClock(effectiveRemaining(timers.countdown))}</strong>
           </div>
         </div>
         ${records.length ? `
@@ -1024,10 +1401,7 @@ function actaView() {
           </div>
         ` : ''}
 
-        <div class="section-bar">
-          <span>DESGLOSE DE FALTAS CALIFICADAS (${sim.faults.length})</span>
-          ${sim.faults.length ? '<button type="button" class="bar-toggle-btn no-print" data-action="clear-current">Vaciar faltas</button>' : ''}
-        </div>
+        <div class="section-bar">DESGLOSE DE FALTAS CALIFICADAS (${sim.faults.length})</div>
         ${sim.faults.length ? `
           <div class="official-faults-table">
             <div class="off-fault-thead">
@@ -1035,7 +1409,6 @@ function actaView() {
               <span>CÓD.</span>
               <span>TIPO</span>
               <span>DESCRIPCIÓN DEL CRITERIO / OBSERVACIONES</span>
-              <span class="no-print"></span>
             </div>
             ${sim.faults.map((f, idx) => {
               const cat = f.faultId != null ? catalogById.get(f.faultId) : null;
@@ -1043,7 +1416,7 @@ function actaView() {
               const tipo = data.tipo || f.tipo || 'L';
               const code = cat?.code || '—';
               return `
-                <div class="off-fault-trow">
+                <div class="off-fault-trow off-fault-trow-4">
                   <span class="mono text-muted">${idx + 1}</span>
                   <span class="mono">${esc(code)}</span>
                   <span>${severityBox(tipo)}</span>
@@ -1052,7 +1425,6 @@ function actaView() {
                     <span>${esc(data.bloque || '')} (${esc(levelName(tipo))})</span>
                     ${f.note ? `<div class="off-fault-note">Observación: ${esc(f.note)}</div>` : ''}
                   </div>
-                  <button type="button" class="t-link-danger no-print" data-action="remove-fault" data-index="${idx}">Quitar</button>
                 </div>
               `;
             }).join('')}
@@ -1068,261 +1440,9 @@ function actaView() {
   `;
 }
 
-function studentsListInnerHtml() {
-  const q = normalise(state.studentQuery).trim();
-  const rows = state.students.filter((s) => {
-    if (!q) return true;
-    return normalise(`${s.name} ${s.phone} ${s.email} ${s.notes}`).includes(q);
-  });
-
-  if (!rows.length) {
-    return `<div class="empty-row">${state.students.length ? 'Ningún expediente coincide con la búsqueda.' : 'No hay alumnos registrados. Pulsa «+ Alta de alumno» para crear uno.'}</div>`;
-  }
-
-  return `
-    <div class="data-table">
-      <div class="data-thead students-cols">
-        <span>ALUMNO / EXPEDIENTE</span>
-        <span>CONTACTO</span>
-        <span>PRUEBAS</span>
-        <span>ÚLTIMA</span>
-        <span>ACCIONES</span>
-      </div>
-      ${rows.map((s) => {
-        const exams = simulationsForStudent(s.id);
-        const latest = exams[0];
-        const latestRes = latest ? evaluateSimulation(latest.faults || []) : null;
-        return `
-          <div class="data-trow students-cols">
-            <div class="cell-primary">
-              <strong>${esc(s.name)}</strong>
-              ${s.notes ? `<small>${esc(s.notes.slice(0, 70))}${s.notes.length > 70 ? '…' : ''}</small>` : ''}
-            </div>
-            <div class="cell-secondary">${esc([s.phone, s.email].filter(Boolean).join(' · ') || '—')}</div>
-            <div class="cell-mono mono">${exams.length}</div>
-            <div>
-              ${latestRes
-                ? `<span class="verdict-tag ${latestRes.noApto ? 'is-noapto' : 'is-apto'}">${latestRes.result}</span>`
-                : '<span class="text-muted">—</span>'}
-            </div>
-            <div class="cell-actions">
-              <button type="button" class="t-btn t-btn-primary" data-action="new-exam-student" data-id="${esc(s.id)}">Abrir hoja</button>
-              <button type="button" class="t-btn" data-action="view-student" data-id="${esc(s.id)}">Expediente</button>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-}
-
-function studentsView() {
-  const draft = state.studentDraft;
-  return `
-    <main class="dgt-sheet">
-      <section class="form-section">
-        <div class="section-bar">
-          <span>DIRECTORIO DE ALUMNOS (${state.students.length})</span>
-          <button type="button" class="bar-toggle-btn" data-action="toggle-new-student">
-            ${state.showNewStudentForm ? 'Cerrar alta ▴' : '+ Alta de alumno'}
-          </button>
-        </div>
-
-        ${state.showNewStudentForm ? `
-          <div class="new-student-box">
-            <div class="meta-grid">
-              <div class="meta-cell">
-                <label class="cell-label">APELLIDOS Y NOMBRE *</label>
-                <input type="text" class="bare-input" data-student-draft="name" value="${esc(draft.name)}" placeholder="Ej.: Martínez Ruiz, Carlos" autocomplete="off" />
-              </div>
-              <div class="meta-cell">
-                <label class="cell-label">TELÉFONO</label>
-                <input type="tel" class="bare-input" data-student-draft="phone" value="${esc(draft.phone)}" placeholder="600 000 000" inputmode="tel" autocomplete="off" />
-              </div>
-              <div class="meta-cell">
-                <label class="cell-label">CORREO ELECTRÓNICO</label>
-                <input type="email" class="bare-input" data-student-draft="email" value="${esc(draft.email)}" placeholder="correo@ejemplo.es" inputmode="email" autocomplete="off" />
-              </div>
-              <div class="meta-cell meta-cell-full">
-                <label class="cell-label">OBSERVACIONES DE SEGUIMIENTO</label>
-                <textarea class="bare-textarea" rows="2" data-student-draft="notes" placeholder="Anotaciones del alumno...">${esc(draft.notes)}</textarea>
-              </div>
-            </div>
-            <div class="form-action-bar">
-              <button type="button" class="t-btn" data-action="toggle-new-student">Cancelar</button>
-              <button type="button" class="t-btn" data-action="create-student">Guardar ficha</button>
-              <button type="button" class="t-btn t-btn-primary" data-action="create-student-and-exam">Guardar y abrir hoja</button>
-            </div>
-          </div>
-        ` : ''}
-
-        <div class="filter-toolbar">
-          <div class="filter-search">
-            <input type="search" data-search="students" value="${esc(state.studentQuery)}" placeholder="Buscar alumno por nombre, teléfono o notas..." autocomplete="off" />
-          </div>
-        </div>
-
-        <div id="student-results-container">
-          ${studentsListInnerHtml()}
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function studentDetailView() {
-  const student = selectedStudent();
-  if (!student) {
-    return `
-      <main class="dgt-sheet">
-        <section class="form-section">
-          <div class="empty-row">
-            <span>Expediente no encontrado.</span>
-            <button type="button" class="t-btn" data-action="screen" data-screen="students">Volver a alumnos</button>
-          </div>
-        </section>
-      </main>
-    `;
-  }
-  const exams = simulationsForStudent(student.id);
-
-  return `
-    <main class="dgt-sheet">
-      <div class="acta-toolbar">
-        <button type="button" class="t-btn" data-action="screen" data-screen="students">‹ Directorio de alumnos</button>
-        <div class="acta-toolbar-right">
-          <button type="button" class="t-btn t-btn-danger-text" data-action="delete-student" data-id="${esc(student.id)}">Eliminar ficha</button>
-          <button type="button" class="t-btn t-btn-primary" data-action="new-exam-student" data-id="${esc(student.id)}">+ Nueva hoja para este alumno</button>
-        </div>
-      </div>
-
-      <section class="form-section">
-        <div class="section-bar">DATOS DEL EXPEDIENTE (GUARDADO AUTOMÁTICO)</div>
-        <div class="meta-grid">
-          <div class="meta-cell">
-            <label class="cell-label">APELLIDOS Y NOMBRE</label>
-            <input type="text" class="bare-input" data-student-field="name" data-id="${esc(student.id)}" value="${esc(student.name)}" autocomplete="off" />
-          </div>
-          <div class="meta-cell">
-            <label class="cell-label">TELÉFONO</label>
-            <input type="tel" class="bare-input" data-student-field="phone" data-id="${esc(student.id)}" value="${esc(student.phone)}" inputmode="tel" autocomplete="off" />
-          </div>
-          <div class="meta-cell">
-            <label class="cell-label">CORREO ELECTRÓNICO</label>
-            <input type="email" class="bare-input" data-student-field="email" data-id="${esc(student.id)}" value="${esc(student.email)}" inputmode="email" autocomplete="off" />
-          </div>
-          <div class="meta-cell meta-cell-full">
-            <label class="cell-label">NOTAS PEDAGÓGICAS</label>
-            <textarea class="bare-textarea" rows="3" data-student-field="notes" data-id="${esc(student.id)}" placeholder="Evolución del alumno...">${esc(student.notes)}</textarea>
-          </div>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <div class="section-bar">PRUEBAS REALIZADAS POR EL ALUMNO (${exams.length})</div>
-        ${exams.length ? archiveTableHtml(exams) : '<div class="empty-row">Todavía no se han registrado pruebas para este alumno.</div>'}
-      </section>
-    </main>
-  `;
-}
-
-function archiveTableHtml(list) {
-  return `
-    <div class="data-table">
-      <div class="data-thead archive-cols">
-        <span>FECHA</span>
-        <span>ASPIRANTE / ZONA</span>
-        <span>CÓMPUTO</span>
-        <span>RESULTADO</span>
-        <span>ACCIONES</span>
-      </div>
-      ${list.map((sim) => {
-        const res = evaluateSimulation(sim.faults || []);
-        const isCurrent = state.currentPersisted && state.current?.id === sim.id;
-        return `
-          <div class="data-trow archive-cols ${isCurrent ? 'is-active-row' : ''}">
-            <div class="cell-mono mono">${formatDateEs(sim.date)}</div>
-            <div class="cell-primary">
-              <strong>${esc(sim.studentName || 'Sin nombre')} ${isCurrent ? '<em class="open-flag">[ABIERTA]</em>' : ''}</strong>
-              <small>${esc(sim.zone || 'Sin recorrido')} · ${sim.status === 'finalized' ? 'Cerrada' : 'En curso'}</small>
-            </div>
-            <div class="cell-mono mono">${res.L}L · ${res.D}D · ${res.E}E</div>
-            <div>
-              <span class="verdict-tag ${res.noApto ? 'is-noapto' : 'is-apto'}">${res.result}</span>
-            </div>
-            <div class="cell-actions">
-              <button type="button" class="t-btn t-btn-primary" data-action="load-simulation" data-id="${esc(sim.id)}">Abrir</button>
-              <button type="button" class="t-btn" data-action="duplicate" data-id="${esc(sim.id)}">Duplicar</button>
-              <button type="button" class="t-btn t-btn-danger-text" data-action="delete" data-id="${esc(sim.id)}">Borrar</button>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-}
-
-function filteredArchiveInnerHtml() {
-  const q = normalise(state.historyQuery).trim();
-  const f = state.historyFilter;
-  const rows = state.history.filter((sim) => {
-    const res = evaluateSimulation(sim.faults || []);
-    if (f === 'APTO' && res.noApto) return false;
-    if (f === 'NO_APTO' && !res.noApto) return false;
-    if (f === 'DRAFT' && sim.status === 'finalized') return false;
-    if (!q) return true;
-    return normalise(`${sim.studentName} ${sim.zone} ${sim.vehicle} ${sim.teacher} ${sim.date}`).includes(q);
-  });
-
-  if (!rows.length) {
-    return `<div class="empty-row">${state.history.length ? 'Ninguna prueba coincide con el filtro.' : 'No hay pruebas guardadas en el archivo.'}</div>`;
-  }
-  return archiveTableHtml(rows);
-}
-
-function archiveView() {
-  const filters = [
-    ['ALL', 'Todas'],
-    ['APTO', 'Aptas'],
-    ['NO_APTO', 'No aptas'],
-    ['DRAFT', 'Abiertas']
-  ];
-
-  return `
-    <main class="dgt-sheet">
-      <section class="form-section">
-        <div class="section-bar">COPIAS DE SEGURIDAD Y ALMACENAMIENTO LOCAL (JSON)</div>
-        <div class="backup-bar">
-          <span class="backup-note">Datos guardados en IndexedDB local del navegador. Exporta respaldo antes de limpiar datos del navegador.</span>
-          <div class="backup-buttons">
-            <button type="button" class="t-btn t-btn-primary" data-action="export-all">Exportar todo (.json)</button>
-            <button type="button" class="t-btn" data-action="export-json">Exportar hoja actual</button>
-            <label class="t-btn file-upload-btn" for="import-json-file">Importar copia (.json)</label>
-            <input id="import-json-file" type="file" accept="application/json,.json" data-import="json" class="sr-only-input" />
-          </div>
-        </div>
-      </section>
-
-      <section class="form-section">
-        <div class="section-bar">ARCHIVO DE PRUEBAS GUARDADAS (${state.history.length})</div>
-        <div class="filter-toolbar">
-          <div class="filter-search">
-            <input type="search" data-search="history" value="${esc(state.historyQuery)}" placeholder="Buscar por aspirante, zona, matrícula o fecha..." autocomplete="off" />
-          </div>
-          <div class="filter-sev-group">
-            ${filters.map(([code, label]) => `
-              <button type="button" class="sev-filter-btn ${state.historyFilter === code ? 'is-active' : ''}" data-action="history-filter" data-filter="${code}">${label}</button>
-            `).join('')}
-          </div>
-        </div>
-        <div id="history-results-container">
-          ${filteredArchiveInnerHtml()}
-        </div>
-      </section>
-    </main>
-  `;
-}
-
+/* ==========================================================================
+   ACTUALIZACIÓN PARCIAL DEL DOM Y PERSISTENCIA
+   ========================================================================== */
 function updateScoreStripDom() {
   const res = calculateCurrent();
   const lEl = document.querySelector('#tally-L');
@@ -1349,23 +1469,17 @@ function updateSheetFaultPartials() {
 }
 
 function render() {
-  if (!state.current) {
-    state.current = ensureSimulationShape(emptySimulation());
-    state.currentPersisted = false;
-  }
-
   const views = {
-    sheet: sheetView,
-    acta: actaView,
     students: studentsView,
     'student-detail': studentDetailView,
-    archive: archiveView
+    sheet: sheetView,
+    acta: actaView
   };
 
   app.innerHTML = `
-    ${topChromeHtml()}
+    ${topHeaderHtml()}
     ${alertBannerHtml()}
-    ${(views[state.screen] || sheetView)()}
+    ${(views[state.screen] || studentsView)()}
     <div id="status-toast">${state.toast ? `<div class="dgt-toast" role="status">${esc(state.toast)}</div>` : ''}</div>
   `;
   updateTimerDisplays();
@@ -1387,13 +1501,8 @@ async function persistCurrent() {
   }
   await putSimulation(state.current);
   state.currentPersisted = true;
-  await putSetting('currentSimulationId', state.current.id);
+  await putSetting('currentSimulationId', state.current.status === 'finalized' ? null : state.current.id);
   await refreshData();
-  // Actualizar contadores de las pestañas superiores sin reconstruir el DOM activo
-  const archiveTab = document.querySelector('[data-screen="archive"]');
-  if (archiveTab) archiveTab.textContent = `Archivo (${state.history.length})`;
-  const studentsTab = document.querySelector('[data-screen="students"]');
-  if (studentsTab) studentsTab.textContent = `Alumnos (${state.students.length})`;
 }
 
 let persistDebounceTimer;
@@ -1422,29 +1531,10 @@ function scheduleStudentPersist(student, delay = 280) {
   }, delay);
 }
 
-async function pauseAndSaveActiveIfNeeded() {
-  if (!state.current || !state.currentPersisted) return true;
-  if (hasRunningTimers(state.current.timers)) {
-    const ok = window.confirm('La hoja actual tiene un cronómetro en marcha. ¿Detenerlo y abrir otra hoja?');
-    if (!ok) return false;
-    pauseAllTimers(state.current.timers);
-  }
-  await persistCurrent();
-  return true;
-}
-
 async function updateField(target, { immediate = false } = {}) {
   const field = target.dataset.field;
   if (!field || !state.current) return;
   state.current[field] = target.value;
-
-  if (field === 'studentName') {
-    const trimmed = target.value.trim();
-    const match = trimmed ? state.students.find((s) => normalise(s.name) === normalise(trimmed)) : null;
-    state.current.studentId = match ? match.id : null;
-    if (match && immediate) state.current.studentName = match.name;
-  }
-
   if (immediate) await persistCurrent();
   else schedulePersistCurrent();
 }
@@ -1461,14 +1551,22 @@ async function updateStudentField(target, { immediate = false } = {}) {
   const student = state.students.find((item) => item.id === id);
   if (!student || !field) return;
   student[field] = target.value;
+  if (field === 'name') {
+    const h = document.querySelector('#header-student-name');
+    if (h) h.textContent = student.name || 'Ficha de alumno';
+  }
   if (immediate) {
     student.updatedAt = nowIso();
     await putStudent(student);
     await refreshData();
-    if (state.current?.studentId === student.id) {
-      state.current.studentName = student.name;
-      if (state.currentPersisted) await persistCurrent();
+    // Actualizar studentName en sus exámenes
+    for (const sim of simulationsForStudent(student.id)) {
+      if (sim.studentName !== student.name) {
+        sim.studentName = student.name;
+        await putSimulation(sim);
+      }
     }
+    await refreshData();
   } else {
     scheduleStudentPersist(student);
   }
@@ -1488,6 +1586,9 @@ function handleTimerInput(target, { immediate = false } = {}) {
   else schedulePersistCurrent();
 }
 
+/* ==========================================================================
+   OPERACIONES DE ALUMNOS Y EXÁMENES
+   ========================================================================== */
 async function createStudent({ startExam = false } = {}) {
   const name = String(state.studentDraft.name || '').trim();
   if (!name) {
@@ -1496,7 +1597,7 @@ async function createStudent({ startExam = false } = {}) {
   }
   const existing = state.students.find((s) => normalise(s.name) === normalise(name));
   if (existing) {
-    const proceed = window.confirm(`Ya figura un expediente para «${existing.name}». ¿Crear otro igualmente?`);
+    const proceed = window.confirm(`Ya existe un alumno llamado «${existing.name}». ¿Crear otra ficha igualmente?`);
     if (!proceed) return;
   }
   const student = emptyStudent({
@@ -1510,11 +1611,12 @@ async function createStudent({ startExam = false } = {}) {
   state.showNewStudentForm = false;
   await refreshData();
   state.selectedStudentId = student.id;
-  setToast('Expediente guardado');
+  setToast('Alumno creado');
   if (startExam) {
-    await startSimulationForStudent(student.id);
+    await startNewExamForStudent(student.id);
   } else {
-    render();
+    state.showStudentEdit = false;
+    navigateTo('student-detail');
   }
 }
 
@@ -1523,79 +1625,135 @@ async function removeStudent(studentId) {
   if (!student) return;
   const exams = simulationsForStudent(studentId);
   const msg = exams.length
-    ? `¿Eliminar la ficha de «${student.name}»? Sus ${exams.length} prueba(s) permanecerán en el Archivo.`
-    : `¿Eliminar la ficha de «${student.name}»?`;
+    ? `¿Eliminar al alumno «${student.name}» y sus ${exams.length} examen(es) asociados? Esta acción no se puede deshacer.`
+    : `¿Eliminar la ficha del alumno «${student.name}»?`;
   if (!window.confirm(msg)) return;
 
   for (const sim of exams) {
-    sim.studentId = null;
-    if (!sim.studentName) sim.studentName = student.name;
-    await putSimulation(sim);
+    await deleteSimulation(sim.id);
   }
   if (state.current?.studentId === studentId) {
-    state.current.studentId = null;
-    if (!state.current.studentName) state.current.studentName = student.name;
-    if (state.currentPersisted) await persistCurrent();
+    state.current = null;
+    state.currentPersisted = false;
+    await putSetting('currentSimulationId', null);
+    syncTimerLoop();
   }
   await deleteStudent(studentId);
-  if (state.selectedStudentId === studentId) state.selectedStudentId = null;
+  state.selectedStudentId = null;
+  state.showStudentEdit = false;
   await refreshData();
-  setToast('Ficha eliminada');
+  setToast('Alumno eliminado');
   navigateTo('students');
 }
 
-async function startSimulationForStudent(studentId) {
-  const canSwitch = await pauseAndSaveActiveIfNeeded();
-  if (!canSwitch) return;
-  const student = state.students.find((item) => item.id === studentId) || await getStudent(studentId);
+async function openStudentFolder(id) {
+  const student = state.students.find((item) => item.id === id) || await getStudent(id);
   if (!student) {
-    setUserAlert('Alumno no encontrado', 'No existe la ficha solicitada.', { code: 'STUDENT_NOT_FOUND' });
+    setUserAlert('Alumno no encontrado', 'El expediente solicitado no existe.', { code: 'STUDENT_NOT_FOUND' });
     return;
   }
-  state.current = ensureSimulationShape(emptySimulation(student));
   state.selectedStudentId = student.id;
-  await persistCurrent();
-  setToast(`Hoja abierta: ${student.name}`);
-  navigateTo('sheet');
+  state.showStudentEdit = false;
+  navigateTo('student-detail');
 }
 
-async function startBlankSheet() {
-  const hasWork = state.current && (
-    state.current.faults?.length > 0 ||
-    Boolean(state.current.studentName?.trim()) ||
-    hasRunningTimers(state.current.timers) ||
-    effectiveElapsed(state.current.timers?.exam) > 0
-  );
-
-  if (hasWork && state.current.status !== 'finalized') {
-    const ok = window.confirm('¿Abrir una nueva hoja de calificación en blanco? La actual quedará guardada en el Archivo.');
-    if (!ok) return;
+async function startNewExamForStudent(studentId) {
+  // Si había otra evaluación corriendo en memoria, pausarla y guardarla antes
+  if (state.current && state.currentPersisted && hasRunningTimers(state.current.timers)) {
     pauseAllTimers(state.current.timers);
     await persistCurrent();
   }
 
-  state.current = ensureSimulationShape(emptySimulation());
+  const student = state.students.find((item) => item.id === studentId) || await getStudent(studentId);
+  if (!student) {
+    setUserAlert('Alumno no encontrado', 'Selecciona un alumno válido antes de crear el examen.', { code: 'STUDENT_NOT_FOUND' });
+    return;
+  }
+
+  state.selectedStudentId = student.id;
+  state.current = ensureSimulationShape(emptySimulation(student));
   state.currentPersisted = false;
-  await putSetting('currentSimulationId', null);
-  syncTimerLoop();
-  setToast('Nueva hoja en blanco');
+  state.query = '';
+  state.filter = 'ALL';
+  state.selectedBlock = 'ALL';
+  state.showHeaderMeta = false;
+  setToast(`Nuevo examen: ${student.name}`);
   navigateTo('sheet');
 }
 
-async function viewStudent(id) {
-  const student = state.students.find((item) => item.id === id) || await getStudent(id);
-  if (!student) {
-    setUserAlert('Expediente no encontrado', 'La ficha ya no existe.', { code: 'STUDENT_NOT_FOUND' });
+async function saveAndFinishCurrentExam() {
+  if (!state.current) return;
+  window.clearTimeout(persistDebounceTimer);
+  pauseAllTimers(state.current.timers);
+  state.current.status = 'finalized';
+  await persistCurrent();
+  syncTimerLoop();
+
+  const targetStudentId = state.current.studentId || state.selectedStudentId;
+  setToast('Examen guardado en la ficha del alumno');
+  if (targetStudentId) {
+    state.selectedStudentId = targetStudentId;
+    navigateTo('student-detail');
+  } else {
+    navigateTo('students');
+  }
+}
+
+async function leaveCurrentExamToStudent() {
+  window.clearTimeout(persistDebounceTimer);
+  const targetStudentId = state.current?.studentId || state.selectedStudentId;
+
+  if (state.current) {
+    if (isSimulationUntouched(state.current) && !state.currentPersisted) {
+      // Examen recién abierto sin tocar nada: descartar sin ensuciar la lista
+      state.current = null;
+      state.currentPersisted = false;
+    } else {
+      if (hasRunningTimers(state.current.timers)) {
+        pauseAllTimers(state.current.timers);
+      }
+      await persistCurrent();
+      setToast(state.current.status === 'finalized' ? 'Cambios guardados' : 'Guardado como examen en curso');
+    }
+  }
+  syncTimerLoop();
+
+  if (targetStudentId) {
+    state.selectedStudentId = targetStudentId;
+    navigateTo('student-detail');
+  } else {
+    navigateTo('students');
+  }
+}
+
+async function editExistingSimulation(id) {
+  const sim = await getSimulation(id);
+  if (!sim) {
+    setUserAlert('Examen no encontrado', 'El examen solicitado ya no existe.', { code: 'SIMULATION_NOT_FOUND' });
     return;
   }
-  state.selectedStudentId = student.id;
-  navigateTo('student-detail');
+  state.current = ensureSimulationShape(sim);
+  state.currentPersisted = true;
+  if (sim.studentId) state.selectedStudentId = sim.studentId;
+  await putSetting('currentSimulationId', sim.status === 'finalized' ? null : sim.id);
+  navigateTo('sheet');
+}
+
+async function openSimulationActa(id) {
+  const sim = await getSimulation(id);
+  if (!sim) {
+    setUserAlert('Examen no encontrado', 'El examen solicitado ya no existe.', { code: 'SIMULATION_NOT_FOUND' });
+    return;
+  }
+  state.current = ensureSimulationShape(sim);
+  state.currentPersisted = true;
+  if (sim.studentId) state.selectedStudentId = sim.studentId;
+  navigateTo('acta');
 }
 
 async function recordFault(id, { note = '' } = {}) {
   const item = catalogById.get(Number(id));
-  if (!item) return;
-  if (state.current.status === 'finalized') state.current.status = 'draft';
+  if (!item || !state.current) return;
 
   state.current.faults.push({
     uid: makeId('fault'),
@@ -1634,11 +1792,120 @@ async function decrementFaultByCatalogId(id) {
   }
 }
 
+/* ==========================================================================
+   EXPORTACIÓN DE EXÁMENES (PDF, COMPARTIR PDF, CSV, JSON)
+   ========================================================================== */
+async function resolveSimulationById(id) {
+  if (state.current && state.current.id === id) return ensureSimulationShape(state.current);
+  const found = state.history.find((s) => s.id === id) || await getSimulation(id);
+  return found ? ensureSimulationShape(found) : null;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadJson(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, filename);
+}
+
+function safeFileSlug(text, fallback = 'alumno') {
+  const clean = String(text || fallback)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 40);
+  return clean || fallback;
+}
+
+function exportSimulationCsv(simulation) {
+  const res = evaluateSimulation(simulation.faults || []);
+  const csvEsc = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+  const lines = [
+    ['Campo', 'Valor'].map(csvEsc).join(';'),
+    ['Alumno', simulation.studentName || ''].map(csvEsc).join(';'),
+    ['Fecha', formatDateEs(simulation.date, '')].map(csvEsc).join(';'),
+    ['Zona / Recorrido', simulation.zone || ''].map(csvEsc).join(';'),
+    ['Vehículo', simulation.vehicle || ''].map(csvEsc).join(';'),
+    ['Profesor', simulation.teacher || ''].map(csvEsc).join(';'),
+    ['Calificación', res.result].map(csvEsc).join(';'),
+    ['Leves (L)', res.L].map(csvEsc).join(';'),
+    ['Deficientes (D)', res.D].map(csvEsc).join(';'),
+    ['Eliminatorias (E)', res.E].map(csvEsc).join(';'),
+    ['Duración circulación', formatPlainClock(effectiveElapsed(simulation.timers?.exam))].map(csvEsc).join(';'),
+    ['Observaciones generales', simulation.generalNotes || ''].map(csvEsc).join(';'),
+    '',
+    ['Nº', 'Código', 'Tipo', 'Nivel', 'Bloque', 'Falta', 'Observación'].map(csvEsc).join(';')
+  ];
+
+  (simulation.faults || []).forEach((f, idx) => {
+    const cat = f.faultId != null ? catalogById.get(f.faultId) : null;
+    const data = cat || f.snapshot || f;
+    const tipo = data.tipo || f.tipo || 'L';
+    lines.push([
+      idx + 1,
+      cat?.code || '',
+      tipo,
+      levelName(tipo),
+      data.bloque || '',
+      data.falta || '',
+      f.note || ''
+    ].map(csvEsc).join(';'));
+  });
+
+  // BOM UTF-8 para que Excel en español abra acentos y ñ directamente
+  const blob = new Blob([`\uFEFF${lines.join('\r\n')}`], { type: 'text/csv;charset=utf-8' });
+  const filename = `Examen_${safeFileSlug(simulation.studentName)}_${simulation.date || localTodayIso()}.csv`;
+  downloadBlob(blob, filename);
+}
+
+async function handlePdfExport(examId, { share = false } = {}) {
+  const sim = await resolveSimulationById(examId);
+  if (!sim) {
+    setUserAlert('Examen no disponible', 'No se ha encontrado el examen para exportar.', { code: 'NO_ACTIVE_SIMULATION' });
+    return;
+  }
+  try {
+    const warnings = validateSimulationForPdf(sim);
+    if (warnings.length) {
+      const ok = window.confirm(`${warnings.join(' ')} ¿Generar el PDF igualmente?`);
+      if (!ok) return;
+    }
+    state.busyExamId = sim.id;
+    render();
+    const { downloadSimulationPdf, shareSimulationPdf } = await import('./pdf.js');
+    if (share) {
+      const outcome = await shareSimulationPdf(sim, catalogById);
+      setToast(outcome === 'shared' ? 'PDF compartido' : 'PDF descargado');
+    } else {
+      downloadSimulationPdf(sim, catalogById);
+      setToast('PDF descargado');
+    }
+  } catch (error) {
+    if (error?.name === 'AbortError') return; // Cancelación voluntaria del menú compartir en móvil
+    showUserError(error, 'pdf');
+  } finally {
+    state.busyExamId = null;
+    render();
+  }
+}
+
+/* ==========================================================================
+   CRONÓMETROS
+   ========================================================================== */
 function setTimerStatus(key, running) {
   if (!state.current?.timers?.[key]) return null;
   const timer = state.current.timers[key];
   if (running && !timer.running) {
-    if (state.current.status === 'finalized') state.current.status = 'draft';
     timer.running = true;
     timer.startedAt = currentTimestamp();
   }
@@ -1724,7 +1991,6 @@ function applyCountdownDuration(value, { renderAfter = false } = {}) {
 
 async function startCountdown() {
   ensureSimulationShape(state.current);
-  if (state.current.status === 'finalized') state.current.status = 'draft';
   const countdown = state.current.timers.countdown;
   if (effectiveRemaining(countdown) <= 0) countdown.remainingMs = countdown.durationMs;
   countdown.running = true;
@@ -1792,73 +2058,21 @@ function updateTimerDisplays() {
   }
 }
 
-async function loadSimulation(id) {
-  if (state.current?.id !== id) {
-    const canSwitch = await pauseAndSaveActiveIfNeeded();
-    if (!canSwitch) return;
-  }
-  const sim = await getSimulation(id);
-  if (!sim) {
-    setUserAlert('Prueba no encontrada', 'El registro ya no figura en el archivo.', { code: 'SIMULATION_NOT_FOUND' });
-    return;
-  }
-  state.current = ensureSimulationShape(sim);
-  state.currentPersisted = true;
-  state.selectedStudentId = sim.studentId || null;
-  await putSetting('currentSimulationId', sim.id);
-  navigateTo(sim.status === 'finalized' ? 'acta' : 'sheet');
-}
-
-async function duplicateSimulation(id) {
-  const canSwitch = await pauseAndSaveActiveIfNeeded();
-  if (!canSwitch) return;
-  const original = await getSimulation(id);
-  if (!original) return;
-  const timersCopy = sanitizeTimers(original.timers, { makeId, nowIso });
-  pauseAllTimers(timersCopy);
-  const copy = ensureSimulationShape({
-    ...original,
-    id: makeId('sim'),
-    date: localTodayIso(),
-    timers: timersCopy,
-    faults: (original.faults || []).map((f) => ({ ...f, uid: makeId('fault') })),
-    status: 'draft',
-    createdAt: nowIso(),
-    updatedAt: nowIso()
-  });
-  await putSimulation(copy);
-  state.current = copy;
-  state.currentPersisted = true;
-  state.selectedStudentId = copy.studentId || null;
-  await refreshData();
-  await putSetting('currentSimulationId', copy.id);
-  setToast('Hoja duplicada');
-  navigateTo('sheet');
-}
-
-function downloadJson(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
+/* ==========================================================================
+   MIGRACIÓN E IMPORTACIÓN DE COPIAS JSON
+   ========================================================================== */
 async function migrateExistingSimulationsToStudents() {
   await refreshData();
   const studentsByName = new Map(state.students.map((student) => [normalise(student.name), student]));
   let changed = false;
   for (const sim of state.history) {
-    if (sim.studentId || !String(sim.studentName || '').trim()) continue;
-    const key = normalise(sim.studentName.trim());
+    if (sim.studentId && state.students.some((s) => s.id === sim.studentId)) continue;
+    const rawName = String(sim.studentName || '').trim() || 'Alumno sin nombre';
+    const key = normalise(rawName);
     let student = studentsByName.get(key);
     if (!student) {
       student = emptyStudent({
-        name: sim.studentName.trim(),
+        name: rawName,
         createdAt: sim.createdAt || nowIso(),
         updatedAt: nowIso()
       });
@@ -1866,6 +2080,7 @@ async function migrateExistingSimulationsToStudents() {
       studentsByName.set(key, student);
     }
     sim.studentId = student.id;
+    sim.studentName = student.name;
     await putSimulation(sim);
     changed = true;
   }
@@ -1897,18 +2112,10 @@ async function handleImport(input) {
 
     await migrateExistingSimulationsToStudents();
     await refreshData();
-
-    if (state.currentPersisted && state.current) {
-      const refreshed = await getSimulation(state.current.id);
-      if (refreshed) state.current = ensureSimulationShape(refreshed);
-    } else if (state.history.length) {
-      state.current = ensureSimulationShape(state.history[0]);
-      state.currentPersisted = true;
-      await putSetting('currentSimulationId', state.current.id);
-    }
+    state.showBackupsBar = false;
 
     const skipped = invalidIndexes.length ? ` (${invalidIndexes.length} omitidas)` : '';
-    setToast(`Importadas ${simulations.length} pruebas y ${studentsSaved} fichas${skipped}`);
+    setToast(`Importados ${studentsSaved || state.students.length} alumnos y ${simulations.length} exámenes${skipped}`);
     render();
   } catch (error) {
     showUserError(error, 'import');
@@ -1917,6 +2124,9 @@ async function handleImport(input) {
   }
 }
 
+/* ==========================================================================
+   ENRUTADOR DE ACCIONES
+   ========================================================================== */
 async function handleAction(target) {
   const action = target.dataset.action;
   if (!action) return;
@@ -1927,13 +2137,132 @@ async function handleAction(target) {
   }
   clearUserAlert();
 
-  if (action === 'screen') {
-    navigateTo(target.dataset.screen);
+  // Navegación principal del flujo
+  if (action === 'go-students') {
+    navigateTo('students');
     return;
   }
 
-  if (action === 'new-sheet') return startBlankSheet();
+  if (action === 'back-to-student') {
+    if (state.selectedStudentId) navigateTo('student-detail');
+    else navigateTo('students');
+    return;
+  }
 
+  if (action === 'leave-exam') return leaveCurrentExamToStudent();
+  if (action === 'save-and-finish') return saveAndFinishCurrentExam();
+
+  if (action === 'toggle-new-student') {
+    state.showNewStudentForm = !state.showNewStudentForm;
+    render();
+    if (state.showNewStudentForm) document.querySelector('#new-student-name')?.focus();
+    return;
+  }
+
+  if (action === 'open-new-student') {
+    state.showNewStudentForm = true;
+    render();
+    document.querySelector('#new-student-name')?.focus();
+    return;
+  }
+
+  if (action === 'toggle-backups') {
+    state.showBackupsBar = !state.showBackupsBar;
+    render();
+    return;
+  }
+
+  if (action === 'toggle-student-edit') {
+    state.showStudentEdit = !state.showStudentEdit;
+    render();
+    return;
+  }
+
+  if (action === 'clear-student-query') {
+    state.studentQuery = '';
+    render();
+    return;
+  }
+
+  // Gestión de alumnos
+  if (action === 'create-student') return createStudent({ startExam: false });
+  if (action === 'create-student-and-exam') return createStudent({ startExam: true });
+  if (action === 'delete-student') return removeStudent(target.dataset.id);
+  if (action === 'view-student') return openStudentFolder(target.dataset.id);
+  if (action === 'new-exam-student') return startNewExamForStudent(target.dataset.id);
+
+  // Gestión de exámenes del alumno
+  if (action === 'edit-simulation') return editExistingSimulation(target.dataset.id);
+  if (action === 'open-acta') return openSimulationActa(target.dataset.id);
+  if (action === 'pdf-exam') return handlePdfExport(target.dataset.id, { share: false });
+  if (action === 'share-pdf-exam') return handlePdfExport(target.dataset.id, { share: true });
+
+  if (action === 'csv-exam') {
+    const sim = await resolveSimulationById(target.dataset.id);
+    if (sim) {
+      exportSimulationCsv(sim);
+      setToast('Archivo CSV descargado');
+    }
+    return;
+  }
+
+  if (action === 'json-exam') {
+    const sim = await resolveSimulationById(target.dataset.id);
+    if (sim) {
+      downloadJson(sim, `Examen_${safeFileSlug(sim.studentName)}_${sim.date || localTodayIso()}.json`);
+      setToast('Archivo JSON descargado');
+    }
+    return;
+  }
+
+  if (action === 'export-student-json') {
+    const student = state.students.find((s) => s.id === target.dataset.id);
+    if (!student) return;
+    const exams = simulationsForStudent(student.id);
+    downloadJson(
+      { exportedAt: nowIso(), version: '0.6.0', students: [student], simulations: exams },
+      `Expediente_${safeFileSlug(student.name)}_${localTodayIso()}.json`
+    );
+    setToast('Expediente del alumno exportado');
+    return;
+  }
+
+  if (action === 'export-all') {
+    try {
+      await refreshData();
+      downloadJson(
+        { exportedAt: nowIso(), version: '0.6.0', students: state.students, simulations: state.history },
+        `Respaldo_Alumnos_PermisoB_${localTodayIso()}.json`
+      );
+      setToast('Copia completa descargada');
+    } catch (error) {
+      showUserError(error, 'export');
+    }
+    return;
+  }
+
+  if (action === 'delete') {
+    if (!window.confirm('¿Borrar definitivamente este examen de la ficha del alumno?')) return;
+    const deletedId = target.dataset.id;
+    await deleteSimulation(deletedId);
+    if (state.current?.id === deletedId) {
+      state.current = null;
+      state.currentPersisted = false;
+      await putSetting('currentSimulationId', null);
+      syncTimerLoop();
+    }
+    await refreshData();
+    setToast('Examen borrado');
+    render();
+    return;
+  }
+
+  if (action === 'print') {
+    window.print();
+    return;
+  }
+
+  // Controles internos de la Hoja de Evaluación
   if (action === 'toggle-header-meta') {
     state.showHeaderMeta = !state.showHeaderMeta;
     render();
@@ -1950,12 +2279,6 @@ async function handleAction(target) {
     state.showBlockGrid = !state.showBlockGrid;
     const slot = document.querySelector('#block-matrix-slot');
     if (slot) slot.innerHTML = blockMatrixHtml();
-    return;
-  }
-
-  if (action === 'toggle-new-student') {
-    state.showNewStudentForm = !state.showNewStudentForm;
-    render();
     return;
   }
 
@@ -1990,18 +2313,6 @@ async function handleAction(target) {
     return;
   }
 
-  if (action === 'history-filter') {
-    state.historyFilter = target.dataset.filter;
-    render();
-    return;
-  }
-
-  if (action === 'create-student') return createStudent({ startExam: false });
-  if (action === 'create-student-and-exam') return createStudent({ startExam: true });
-  if (action === 'delete-student') return removeStudent(target.dataset.id);
-  if (action === 'view-student') return viewStudent(target.dataset.id);
-  if (action === 'new-exam-student') return startSimulationForStudent(target.dataset.id);
-
   if (action === 'open-fault') {
     state.openFault = Number(target.dataset.id);
     render();
@@ -2015,13 +2326,8 @@ async function handleAction(target) {
     return;
   }
 
-  if (action === 'quick-add-fault') {
-    return recordFault(target.dataset.id);
-  }
-
-  if (action === 'decrement-fault') {
-    return decrementFaultByCatalogId(target.dataset.id);
-  }
+  if (action === 'quick-add-fault') return recordFault(target.dataset.id);
+  if (action === 'decrement-fault') return decrementFaultByCatalogId(target.dataset.id);
 
   if (action === 'add-fault-continue') {
     const note = document.querySelector('#fault-note')?.value?.trim() || '';
@@ -2035,6 +2341,15 @@ async function handleAction(target) {
     await persistCurrent();
     if (state.screen === 'sheet') updateSheetFaultPartials();
     else render();
+    return;
+  }
+
+  if (action === 'clear-current') {
+    if (!state.current?.faults?.length) return;
+    if (!window.confirm('¿Anular todas las faltas anotadas en este examen?')) return;
+    state.current.faults = [];
+    await persistCurrent();
+    updateSheetFaultPartials();
     return;
   }
 
@@ -2053,108 +2368,11 @@ async function handleAction(target) {
   if (action === 'countdown-start') return startCountdown();
   if (action === 'countdown-pause') return pauseCountdown();
   if (action === 'countdown-reset') return resetCountdown();
-
-  if (action === 'load-simulation') return loadSimulation(target.dataset.id);
-  if (action === 'duplicate') return duplicateSimulation(target.dataset.id);
-
-  if (action === 'delete') {
-    if (!window.confirm('¿Eliminar definitivamente esta prueba del archivo?')) return;
-    const deletedId = target.dataset.id;
-    await deleteSimulation(deletedId);
-    if (state.current?.id === deletedId) {
-      state.current = ensureSimulationShape(emptySimulation());
-      state.currentPersisted = false;
-      await putSetting('currentSimulationId', null);
-      syncTimerLoop();
-    }
-    await refreshData();
-    setToast('Registro eliminado');
-    render();
-    return;
-  }
-
-  if (action === 'pdf') {
-    try {
-      const warnings = validateSimulationForPdf(state.current);
-      if (warnings.length) {
-        const ok = window.confirm(`${warnings.join(' ')} ¿Generar PDF igualmente?`);
-        if (!ok) return;
-      }
-      state.pdfBusy = true;
-      render();
-      await persistCurrent();
-      const { downloadSimulationPdf } = await import('./pdf.js');
-      downloadSimulationPdf(state.current, catalogById);
-      setToast('PDF generado');
-    } catch (error) {
-      showUserError(error, 'pdf');
-    } finally {
-      state.pdfBusy = false;
-      render();
-    }
-    return;
-  }
-
-  if (action === 'print') {
-    window.print();
-    return;
-  }
-
-  if (action === 'export-json') {
-    try {
-      if (!state.current) throw userError('No hay hoja abierta.', { title: 'Sin hoja activa', code: 'NO_CURRENT_SIMULATION' });
-      await persistCurrent();
-      downloadJson(state.current, `Hoja_PermisoB_${state.current.date || localTodayIso()}.json`);
-      setToast('Hoja exportada');
-    } catch (error) {
-      showUserError(error, 'export');
-    }
-    return;
-  }
-
-  if (action === 'export-all') {
-    try {
-      if (state.currentPersisted && state.current) await persistCurrent();
-      await refreshData();
-      downloadJson(
-        { exportedAt: nowIso(), version: '0.6.0', students: state.students, simulations: state.history },
-        `Archivo_PermisoB_${localTodayIso()}.json`
-      );
-      setToast('Archivo exportado');
-    } catch (error) {
-      showUserError(error, 'export');
-    }
-    return;
-  }
-
-  if (action === 'finalize') {
-    pauseAllTimers(state.current.timers);
-    state.current.status = 'finalized';
-    await persistCurrent();
-    syncTimerLoop();
-    setToast('Acta cerrada');
-    render();
-    return;
-  }
-
-  if (action === 'reopen') {
-    state.current.status = 'draft';
-    await persistCurrent();
-    setToast('Acta reabierta');
-    render();
-    return;
-  }
-
-  if (action === 'clear-current') {
-    if (!state.current?.faults?.length) return;
-    if (!window.confirm('¿Anular todas las faltas anotadas en la hoja actual?')) return;
-    state.current.faults = [];
-    await persistCurrent();
-    if (state.screen === 'sheet') updateSheetFaultPartials();
-    else render();
-  }
 }
 
+/* ==========================================================================
+   LISTENERS GLOBALES
+   ========================================================================== */
 app.addEventListener('input', (event) => {
   const target = event.target;
   if (target.dataset.field) updateField(target);
@@ -2169,11 +2387,7 @@ app.addEventListener('input', (event) => {
   } else if (target.dataset.search === 'students') {
     state.studentQuery = target.value;
     const container = document.querySelector('#student-results-container');
-    if (container) container.innerHTML = studentsListInnerHtml();
-  } else if (target.dataset.search === 'history') {
-    state.historyQuery = target.value;
-    const container = document.querySelector('#history-results-container');
-    if (container) container.innerHTML = filteredArchiveInnerHtml();
+    if (container) container.innerHTML = studentsRowsInnerHtml();
   }
 });
 
@@ -2214,6 +2428,16 @@ app.addEventListener('click', (event) => {
   handleAction(target).catch((error) => showUserError(error, 'general'));
 });
 
+app.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    const row = event.target.closest('.dir-row[data-action]');
+    if (row && event.target === row) {
+      event.preventDefault();
+      handleAction(row).catch((error) => showUserError(error, 'general'));
+    }
+  }
+});
+
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && state.openFault) {
     state.openFault = null;
@@ -2247,20 +2471,8 @@ async function init() {
   await migrateExistingSimulationsToStudents();
   await refreshData();
 
-  const currentId = await getSetting('currentSimulationId');
-  if (currentId) {
-    const saved = await getSimulation(currentId);
-    if (saved) {
-      state.current = ensureSimulationShape(saved);
-      state.currentPersisted = true;
-    }
-  }
-  if (!state.current) {
-    state.current = ensureSimulationShape(emptySimulation());
-    state.currentPersisted = false;
-  }
-
-  state.screen = 'sheet';
+  // Entrada directa siempre a la Lista de Alumnos
+  state.screen = 'students';
   render();
   initServiceWorker();
 }
