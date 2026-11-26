@@ -1,4 +1,4 @@
-const CACHE = 'permiso-b-v0.6.0-mwxcoohb';
+const CACHE = 'permiso-b-v0.6.0-mwxdan4q';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,10 +6,10 @@ const APP_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png'
-  ,'./assets/index-CQBaDnY0.css'
-  ,'./assets/index-C_txxmn-.js'
-  ,'./assets/pdf-DKt0M1NA.js'
-  ,'./assets/index.es-BhCWfDHU.js'
+  ,'./assets/index-htJsmzyS.css'
+  ,'./assets/index-DrMosDaA.js'
+  ,'./assets/pdf-BIHNvbIQ.js'
+  ,'./assets/index.es-B1YRcb7b.js'
 ];
 
 self.addEventListener('install', (event) => {

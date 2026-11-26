@@ -33,52 +33,83 @@ import {
 } from './validation.js';
 
 const app = document.querySelector('#app');
-const catalogById = new Map(catalog.map((item) => [item.id, item]));
 const DEFAULT_COUNTDOWN_MINUTES = 25;
 
-const ICONS = {
-  home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1v-9.5Z"/></svg>',
-  users: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  userPlus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>',
-  exam: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v6.5M4.2 16.5l5.6-3.2M19.8 16.5l-5.6-3.2"/></svg>',
-  faults: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-  summary: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>',
-  history: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
-  settings: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.08a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
-  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
-  plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
-  close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
-  search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
-  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor" stroke="none"/></svg>',
-  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none"/></svg>',
-  reset: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
-  flag: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>',
-  download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></svg>',
-  upload: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></svg>',
-  print: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
-  trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z"/></svg>',
-  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
-  screen: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>'
+// Metadatos técnicos de los bloques del catálogo oficial DGT
+const BLOCK_SHORT_META = {
+  '1. Comprobaciones previas': { code: '01', short: 'Comprobac.' },
+  '2. Instalación': { code: '02', short: 'Instalación' },
+  '3. Incorporación': { code: '03', short: 'Incorporac.' },
+  '4. Progresión normal': { code: '04', short: 'Progresión' },
+  '5. Desplazamientos laterales': { code: '05', short: 'Desplazam.' },
+  '6. Adelantamientos': { code: '06', short: 'Adelantam.' },
+  '7. Intersecciones y glorietas': { code: '07', short: 'Intersecc.' },
+  '8. Cambio de sentido': { code: '08', short: 'C. sentido' },
+  '9. Paradas y estacionamientos': { code: '09', short: 'Estacionam.' },
+  '11. Señales: agentes y paneles': { code: '11A', short: 'Agentes' },
+  '11. Semáforos': { code: '11B', short: 'Semáforos' },
+  '11. Señales verticales': { code: '11C', short: 'Verticales' },
+  '11. Marcas viales': { code: '11D', short: 'Marcas vial.' },
+  '12. Luces': { code: '12', short: 'Luces' },
+  '13. Manejo de mandos': { code: '13', short: 'Mandos' },
+  '14. Otros mandos': { code: '14', short: 'Otros mand.' },
+  '15. Durante la prueba': { code: '15', short: 'Desarrollo' }
 };
 
+// Asignar códigos jerárquicos estilo hoja oficial (ej. 03.01, 07.12)
+const blockCounters = new Map();
+const enrichedCatalog = catalog.map((item) => {
+  const meta = BLOCK_SHORT_META[item.bloque] || {
+    code: String(item.bloque || '').split('.')[0].padStart(2, '0'),
+    short: String(item.bloque || '').replace(/^\d+\.\s*/, '').slice(0, 12)
+  };
+  const nextIdx = (blockCounters.get(item.bloque) || 0) + 1;
+  blockCounters.set(item.bloque, nextIdx);
+  return {
+    ...item,
+    blockCode: meta.code,
+    blockShort: meta.short,
+    code: `${meta.code}.${String(nextIdx).padStart(2, '0')}`
+  };
+});
+
+const catalogById = new Map(enrichedCatalog.map((item) => [item.id, item]));
+const uniqueBlocks = [];
+{
+  const seen = new Set();
+  for (const item of enrichedCatalog) {
+    if (!seen.has(item.bloque)) {
+      seen.add(item.bloque);
+      uniqueBlocks.push({
+        bloque: item.bloque,
+        code: item.blockCode,
+        short: item.blockShort
+      });
+    }
+  }
+}
+
 const state = {
-  screen: 'home',
-  previousScreen: 'home',
-  catalog,
+  screen: 'sheet', // 'sheet' | 'acta' | 'students' | 'student-detail' | 'archive'
   current: null,
+  currentPersisted: false,
   history: [],
   students: [],
   selectedStudentId: null,
+  showHeaderMeta: false,
+  showTimersDrawer: false,
+  showBlockGrid: true,
+  showNewStudentForm: false,
+  selectedBlock: 'ALL',
   query: '',
+  filter: 'ALL',
   studentQuery: '',
   historyQuery: '',
   historyFilter: 'ALL',
-  filter: 'ALL',
-  openBlocks: new Set(),
+  openBlocks: new Set([uniqueBlocks[0]?.bloque, uniqueBlocks[2]?.bloque].filter(Boolean)),
   openFault: null,
   toast: '',
   userAlert: null,
-  installedHintDismissed: false,
   pdfBusy: false,
   wakeLockEnabled: false,
   wakeLockSentinel: null,
@@ -88,13 +119,6 @@ const state = {
 const nowIso = () => new Date().toISOString();
 const currentTimestamp = () => Date.now();
 let timerIntervalId = null;
-
-function isStandaloneMode() {
-  return Boolean(
-    window.matchMedia?.('(display-mode: standalone)').matches ||
-    window.navigator?.standalone === true
-  );
-}
 
 function emptyStudentDraft() {
   return { name: '', phone: '', email: '', notes: '' };
@@ -205,9 +229,9 @@ function formatClock(ms, { showTenths = true } = {}) {
   const hours = Math.floor(totalMinutes / 60);
   const ss = String(seconds).padStart(2, '0');
   const mm = String(minutes).padStart(2, '0');
-  const main = hours > 0 ? `${String(hours).padStart(2, '0')}:${mm}:${ss}` : `${mm}:${ss}`;
-  if (!showTenths) return esc(main);
-  return `${esc(main)}<span class="clock-tenths">.${tenths}</span>`;
+  const base = hours > 0 ? `${String(hours).padStart(2, '0')}:${mm}:${ss}` : `${mm}:${ss}`;
+  if (!showTenths) return esc(base);
+  return `${esc(base)}<span class="t-tenths">.${tenths}</span>`;
 }
 
 function countdownMinutes(timer) {
@@ -218,7 +242,7 @@ function playCountdownAlert() {
   try {
     if (navigator.vibrate) navigator.vibrate([220, 100, 220, 100, 320]);
   } catch {
-    // Ignorar si el navegador bloquea vibración
+    // Sin soporte de vibración
   }
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -227,22 +251,22 @@ function playCountdownAlert() {
     const beep = (startOffset, freq, duration) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine';
+      osc.type = 'square';
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(0.001, ctx.currentTime + startOffset);
-      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + startOffset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + startOffset + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startOffset + duration);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(ctx.currentTime + startOffset);
       osc.stop(ctx.currentTime + startOffset + duration + 0.02);
     };
-    beep(0, 880, 0.18);
-    beep(0.24, 880, 0.18);
-    beep(0.48, 1046, 0.28);
-    window.setTimeout(() => ctx.close().catch(() => {}), 1200);
+    beep(0, 880, 0.16);
+    beep(0.22, 880, 0.16);
+    beep(0.44, 1046, 0.25);
+    window.setTimeout(() => ctx.close().catch(() => {}), 1000);
   } catch {
-    // Audio no disponible sin interacción previa
+    // Audio bloqueado
   }
 }
 
@@ -261,7 +285,7 @@ async function syncWakeLock() {
       state.wakeLockSentinel = null;
     }
   } catch {
-    // Permiso denegado o batería baja en iOS/Android
+    // Ignorar rechazo de wakeLock
   }
 }
 
@@ -298,21 +322,28 @@ function faultCountsByCatalogId() {
   return counts;
 }
 
-function navigateTo(screen) {
-  if (screen !== state.screen) {
-    state.previousScreen = state.screen;
-    state.screen = screen;
+function faultCountsByBlock() {
+  const counts = new Map();
+  for (const item of state.current?.faults || []) {
+    const cat = item.faultId != null ? catalogById.get(item.faultId) : null;
+    const bloque = cat?.bloque || item.snapshot?.bloque;
+    if (bloque) counts.set(bloque, (counts.get(bloque) || 0) + 1);
   }
+  return counts;
+}
+
+function navigateTo(screen) {
+  state.screen = screen;
   state.openFault = null;
   render();
-  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  window.scrollTo(0, 0);
 }
 
 function setToast(message) {
   state.toast = message;
-  const existing = document.querySelector('#toast-root');
-  if (existing) {
-    existing.innerHTML = toastInnerHtml();
+  const root = document.querySelector('#status-toast');
+  if (root) {
+    root.innerHTML = state.toast ? `<div class="dgt-toast" role="status">${esc(state.toast)}</div>` : '';
   } else {
     render();
   }
@@ -320,9 +351,9 @@ function setToast(message) {
     window.clearTimeout(setToast.timer);
     setToast.timer = window.setTimeout(() => {
       state.toast = '';
-      const root = document.querySelector('#toast-root');
-      if (root) root.innerHTML = '';
-    }, 2500);
+      const el = document.querySelector('#status-toast');
+      if (el) el.innerHTML = '';
+    }, 2200);
   }
 }
 
@@ -343,776 +374,488 @@ function showUserError(error, context = 'general') {
   setUserAlert(friendly.title, friendly.message, { type: 'error', code: friendly.code });
 }
 
-function badge(tipo) {
-  const safe = ['L', 'D', 'E'].includes(tipo) ? tipo : 'L';
-  return `<span class="fault-tag fault-tag-${safe}" title="${esc(levelName(safe))}">${safe}</span>`;
-}
-
-function statusPill(result, compact = false) {
-  const cls = result.noApto ? 'status-noapto' : 'status-apto';
-  return `<span class="status-badge ${cls} ${compact ? 'is-compact' : ''}">${result.result}</span>`;
-}
-
-function alertHtml() {
+function alertBannerHtml() {
   if (!state.userAlert) return '';
-  const alert = state.userAlert;
+  const a = state.userAlert;
   return `
-    <div class="alert-banner alert-${esc(alert.type)}" role="alert" aria-live="assertive">
-      <div class="alert-body">
-        <strong>${esc(alert.title)}</strong>
-        <p>${esc(alert.message)}</p>
-        ${alert.code ? `<span class="alert-code">Ref: ${esc(alert.code)}</span>` : ''}
+    <div class="dgt-alert" role="alert" aria-live="assertive">
+      <div class="dgt-alert-text">
+        <strong>${esc(a.title)}:</strong> ${esc(a.message)}
+        ${a.code ? `<span class="dgt-code">[${esc(a.code)}]</span>` : ''}
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" data-action="clear-alert">Cerrar</button>
+      <button type="button" class="t-btn" data-action="clear-alert">Cerrar</button>
     </div>
   `;
 }
 
-function topBar() {
-  const student = selectedStudent();
-  const titles = {
-    home: 'Registro PDA · Permiso B',
-    'student-new': 'Alta de alumno',
-    students: 'Alumnos',
-    'student-detail': student?.name || 'Ficha de alumno',
-    sim: 'Datos y tiempos',
-    faults: 'Catálogo de faltas',
-    summary: 'Informe de prueba',
-    history: 'Historial',
-    settings: 'Ajustes y copias'
-  };
-  const subtitles = {
-    home: 'Evaluación práctica de circulación',
-    'student-new': 'Nuevo expediente local',
-    students: `${state.students.length} registrado${state.students.length === 1 ? '' : 's'}`,
-    'student-detail': 'Expediente e historial',
-    sim: state.current ? (state.current.studentName || 'Examen libre') : 'Sin prueba activa',
-    faults: state.current ? (state.current.studentName || 'Examen libre') : 'Consulta de criterios',
-    summary: state.current ? `${formatDateEs(state.current.date)}${state.current.zone ? ` · ${state.current.zone}` : ''}` : 'Sin prueba activa',
-    history: `${state.history.length} prueba${state.history.length === 1 ? '' : 's'} guardada${state.history.length === 1 ? '' : 's'}`,
-    settings: 'Almacenamiento local y respaldos'
-  };
+function severityBox(tipo) {
+  const safe = ['L', 'D', 'E'].includes(tipo) ? tipo : 'L';
+  return `<span class="sev-box sev-${safe}" title="Falta ${esc(levelName(safe))}">${safe}</span>`;
+}
 
-  const showBack = state.screen !== 'home';
-  const currentRes = state.current ? calculateCurrent() : null;
+function topChromeHtml() {
+  ensureSimulationShape(state.current);
+  const sim = state.current;
+  const res = calculateCurrent();
+  const examTimer = sim.timers.exam;
+  const otherTimerActive = sim.timers.parking.running || sim.timers.countdown.running;
 
-  const desktopLinks = [
-    ['home', 'Inicio'],
-    ['students', 'Alumnos'],
-    ['sim', 'Prueba'],
-    ['faults', 'Faltas'],
-    ['summary', 'Informe'],
-    ['history', 'Historial'],
-    ['settings', 'Ajustes']
+  const navTabs = [
+    ['sheet', 'Hoja'],
+    ['acta', 'Acta / PDF'],
+    ['students', `Alumnos (${state.students.length})`],
+    ['archive', `Archivo (${state.history.length})`]
   ];
 
   return `
-    <header class="topbar">
-      <div class="topbar-inner">
-        <div class="topbar-left">
-          ${showBack ? `<button type="button" class="icon-btn" data-action="go-back" aria-label="Volver">${ICONS.back}</button>` : '<span class="brand-mark" aria-hidden="true">B</span>'}
-          <div class="topbar-titles">
-            <h1>${esc(titles[state.screen] || 'Permiso B')}</h1>
-            <p>${esc(subtitles[state.screen] || '')}</p>
-          </div>
+    <header class="dgt-chrome no-print">
+      <div class="dgt-Masthead">
+        <div class="dgt-brand">
+          <span class="dgt-plate">B</span>
+          <span class="dgt-system-name">CALIFICACIÓN</span>
         </div>
 
-        <nav class="desktop-nav" aria-label="Navegación principal">
-          ${desktopLinks.map(([scr, label]) => `
-            <button type="button" class="desktop-nav-link ${state.screen === scr || (scr === 'students' && ['student-detail', 'student-new'].includes(state.screen)) ? 'is-active' : ''}" data-action="screen" data-screen="${scr}">
-              ${label}
+        <nav class="dgt-tabs" aria-label="Secciones">
+          ${navTabs.map(([id, label]) => `
+            <button type="button" class="dgt-tab ${state.screen === id || (id === 'students' && state.screen === 'student-detail') ? 'is-active' : ''}" data-action="screen" data-screen="${id}">
+              ${esc(label)}
             </button>
           `).join('')}
         </nav>
 
-        ${currentRes ? `
-          <button type="button" class="topbar-status ${currentRes.noApto ? 'is-danger' : 'is-ok'}" data-action="screen" data-screen="summary" title="Ver informe de la prueba activa">
-            <span class="topbar-counts">${currentRes.L}L · ${currentRes.D}D · ${currentRes.E}E</span>
-            <strong>${currentRes.result}</strong>
+        <button type="button" class="dgt-new-btn" data-action="new-sheet" title="Abrir hoja en blanco nueva">+ Nueva</button>
+      </div>
+
+      <div class="dgt-instrument-bar" id="instrument-bar">
+        <div class="inst-counts">
+          <div class="inst-cell inst-L" title="Faltas leves (máx. 9)">
+            <span class="inst-k">L</span>
+            <strong class="inst-v" id="tally-L">${res.L}</strong>
+          </div>
+          <div class="inst-cell inst-D" title="Faltas deficientes (máx. 1)">
+            <span class="inst-k">D</span>
+            <strong class="inst-v" id="tally-D">${res.D}</strong>
+          </div>
+          <div class="inst-cell inst-E" title="Faltas eliminatorias (0)">
+            <span class="inst-k">E</span>
+            <strong class="inst-v" id="tally-E">${res.E}</strong>
+          </div>
+          <button type="button" class="inst-verdict ${res.noApto ? 'is-noapto' : 'is-apto'}" id="tally-verdict" data-action="screen" data-screen="acta" title="Ver acta completa">
+            ${res.result}
           </button>
-        ` : ''}
+        </div>
+
+        <div class="inst-clock-group">
+          <span class="inst-time ${examTimer.running ? 'is-running' : ''}" data-timer-display="elapsed:exam:compact">${formatClock(effectiveElapsed(examTimer), { showTenths: false })}</span>
+          <button type="button" class="inst-btn ${examTimer.running ? 'is-stop' : 'is-start'}" id="top-exam-timer-btn" data-action="${examTimer.running ? 'timer-pause' : 'timer-start'}" data-timer="exam">
+            ${examTimer.running ? 'Parar' : 'Iniciar'}
+          </button>
+          <button type="button" class="inst-btn inst-btn-sub ${state.showTimersDrawer || otherTimerActive ? 'is-active' : ''}" data-action="toggle-timers" title="Mostrar cronómetro de maniobra y cuenta atrás">
+            Relojes ${state.showTimersDrawer ? '▴' : '▾'}
+          </button>
+        </div>
       </div>
     </header>
   `;
 }
 
-function activeExamStrip() {
-  if (!state.current || !['faults', 'students', 'history'].includes(state.screen)) return '';
-  const sim = state.current;
-  const res = calculateCurrent();
-  const examTimer = sim.timers.exam;
+function timersDrawerHtml() {
+  if (!state.showTimersDrawer) return '';
+  const { exam, parking, countdown } = state.current.timers;
+  const countdownDone = effectiveRemaining(countdown) <= 0 && !countdown.running;
+  const wakeSupported = 'wakeLock' in navigator;
+
   return `
-    <div class="exam-strip">
-      <div class="exam-strip-inner">
-        <button type="button" class="exam-strip-info" data-action="screen" data-screen="sim">
-          <span class="exam-strip-dot ${examTimer.running ? 'is-running' : ''}"></span>
-          <strong class="exam-strip-name">${esc(sim.studentName || 'Examen libre')}</strong>
-          <span class="exam-strip-clock" data-timer-display="elapsed:exam:compact">${formatClock(effectiveElapsed(examTimer), { showTenths: false })}</span>
-        </button>
-        <div class="exam-strip-right">
-          <span class="exam-strip-tally"><b>${res.L}</b>L · <b>${res.D}</b>D · <b>${res.E}</b>E</span>
-          <button type="button" class="btn btn-xs ${examTimer.running ? 'btn-amber' : 'btn-outline-light'}" data-action="${examTimer.running ? 'timer-pause' : 'timer-start'}" data-timer="exam" aria-label="${examTimer.running ? 'Pausar cronómetro' : 'Iniciar cronómetro'}">
-            ${examTimer.running ? ICONS.pause : ICONS.play}
-          </button>
+    <section class="form-section timers-drawer no-print">
+      <div class="section-bar">
+        <span>CONTROL DE TIEMPOS DE PRUEBA</span>
+        ${wakeSupported ? `
+          <label class="inline-check">
+            <input type="checkbox" data-toggle="wake-lock" ${state.wakeLockEnabled ? 'checked' : ''} />
+            <span>No apagar pantalla</span>
+          </label>
+        ` : ''}
+      </div>
+
+      <div class="timers-table">
+        <div class="timer-cell">
+          <div class="timer-cell-head">
+            <span class="cell-label">1. CIRCULACIÓN GENERAL</span>
+            <span class="cell-state" data-timer-status="exam">${exam.running ? 'EN MARCHA' : effectiveElapsed(exam) > 0 ? 'PAUSADO' : 'PARADO'}</span>
+          </div>
+          <div class="timer-cell-body">
+            <div class="lcd-box" data-timer-display="elapsed:exam">${formatClock(effectiveElapsed(exam))}</div>
+            <div class="timer-btn-strip" data-timer-buttons="exam">${timerButtonsHtml('exam')}</div>
+          </div>
+        </div>
+
+        <div class="timer-cell">
+          <div class="timer-cell-head">
+            <input type="text" class="cell-label-input" data-timer-input="parkingLabel" value="${esc(parking.label || 'Maniobra')}" aria-label="Etiqueta maniobra" />
+            <span class="cell-state" data-timer-status="parking">${parking.running ? 'EN MARCHA' : effectiveElapsed(parking) > 0 ? 'PAUSADO' : 'PARADO'}</span>
+          </div>
+          <div class="timer-cell-body">
+            <div class="lcd-box" data-timer-display="elapsed:parking">${formatClock(effectiveElapsed(parking))}</div>
+            <div class="timer-btn-strip" data-timer-buttons="parking">${timerButtonsHtml('parking')}</div>
+          </div>
+          ${parking.records.length ? `
+            <div class="lap-table">
+              ${parking.records.map((rec) => `
+                <div class="lap-row">
+                  <span>${esc(rec.label || 'Maniobra')}</span>
+                  <strong class="mono">${formatClock(rec.elapsedMs)}</strong>
+                  <button type="button" class="t-link-danger" data-action="remove-time-record" data-id="${esc(rec.id)}">×</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="timer-cell timer-cell-full ${countdownDone ? 'is-expired' : ''}">
+          <div class="timer-cell-head">
+            <span class="cell-label">3. CUENTA ATRÁS (DURACIÓN REGLAMENTARIA 25 MIN)</span>
+            <span class="cell-state" data-timer-status="countdown">${countdown.running ? 'ACTIVO' : countdownDone ? 'TIEMPO AGOTADO' : 'PREPARADO'}</span>
+          </div>
+          <div class="timer-cell-body countdown-row">
+            <div class="lcd-box" data-timer-display="remaining:countdown">${formatClock(effectiveRemaining(countdown))}</div>
+            <div class="preset-strip">
+              ${[20, 25, 30, 45].map((m) => `
+                <button type="button" class="t-btn ${countdownMinutes(countdown) === m ? 'is-selected' : ''}" data-action="set-countdown" data-minutes="${m}">${m}m</button>
+              `).join('')}
+              <label class="min-box">
+                <input type="number" min="1" max="180" step="1" data-timer-input="countdownMinutes" value="${countdownMinutes(countdown)}" aria-label="Minutos" />
+                <span>min</span>
+              </label>
+            </div>
+            <div class="timer-btn-strip" data-timer-buttons="countdown">${timerButtonsHtml('countdown')}</div>
+          </div>
         </div>
       </div>
-    </div>
-  `;
-}
-
-function bottomNav() {
-  const faultTotal = state.current?.faults?.length || 0;
-  const items = [
-    { screen: 'home', label: 'Inicio', icon: ICONS.home },
-    { screen: 'students', label: 'Alumnos', icon: ICONS.users, match: ['students', 'student-detail', 'student-new'] },
-    { screen: 'sim', label: 'Prueba', icon: ICONS.exam },
-    { screen: 'faults', label: 'Faltas', icon: ICONS.faults, count: faultTotal },
-    { screen: 'summary', label: 'Informe', icon: ICONS.summary }
-  ];
-  return `
-    <nav class="bottom-nav" aria-label="Navegación inferior">
-      ${items.map((item) => {
-        const active = item.match ? item.match.includes(state.screen) : state.screen === item.screen;
-        return `
-          <button type="button" class="bottom-nav-item ${active ? 'is-active' : ''}" data-action="screen" data-screen="${item.screen}">
-            <span class="bottom-nav-icon">
-              ${item.icon}
-              ${item.count ? `<em class="nav-counter">${item.count > 99 ? '99+' : item.count}</em>` : ''}
-            </span>
-            <span class="bottom-nav-label">${item.label}</span>
-          </button>
-        `;
-      }).join('')}
-    </nav>
-  `;
-}
-
-function kpiStripHtml(result) {
-  return `
-    <div class="score-strip" role="group" aria-label="Cómputo de faltas">
-      <div class="score-cell score-cell-L">
-        <span class="score-label">Leves <small>(máx. 9)</small></span>
-        <strong class="score-num">${result.L}</strong>
-      </div>
-      <div class="score-cell score-cell-D">
-        <span class="score-label">Deficientes <small>(máx. 1)</small></span>
-        <strong class="score-num">${result.D}</strong>
-      </div>
-      <div class="score-cell score-cell-E">
-        <span class="score-label">Eliminatorias <small>(0)</small></span>
-        <strong class="score-num">${result.E}</strong>
-      </div>
-      <div class="score-cell">
-        <span class="score-label">Total</span>
-        <strong class="score-num">${result.total}</strong>
-      </div>
-    </div>
-  `;
-}
-
-function installNoticeHtml() {
-  if (state.installedHintDismissed || isStandaloneMode()) return '';
-  return `
-    <section class="notice-bar">
-      <div>
-        <strong>Acceso directo sin conexión</strong>
-        <span>En Safari (iPhone) o Chrome (Android), usa «Añadir a pantalla de inicio» para usarla como aplicación nativa en el vehículo.</span>
-      </div>
-      <button type="button" class="btn btn-ghost btn-sm" data-action="dismiss-install">Ocultar</button>
     </section>
   `;
 }
 
-function homeView() {
-  const recent = state.history.slice(0, 4);
-  const aptosCount = state.history.filter((sim) => !evaluateSimulation(sim.faults || []).noApto).length;
-
-  let activeBlock = '';
-  if (state.current) {
-    const sim = state.current;
-    const res = calculateCurrent();
-    activeBlock = `
-      <section class="panel panel-highlight">
-        <div class="panel-header">
-          <div>
-            <span class="section-tag">${sim.status === 'finalized' ? 'Prueba finalizada' : 'Prueba activa'}</span>
-            <h2 class="panel-title">${esc(sim.studentName || 'Examen libre sin alumno')}</h2>
-            <p class="panel-sub">${formatDateEs(sim.date)}${sim.zone ? ` · ${esc(sim.zone)}` : ''} · Tiempo: <span data-timer-display="elapsed:exam:compact">${formatClock(effectiveElapsed(sim.timers.exam), { showTenths: false })}</span></p>
-          </div>
-          ${statusPill(res)}
-        </div>
-        ${kpiStripHtml(res)}
-        <div class="btn-row btn-row-3 mt-12">
-          <button type="button" class="btn btn-primary" data-action="screen" data-screen="faults">${ICONS.plus} Anotar faltas</button>
-          <button type="button" class="btn btn-secondary" data-action="screen" data-screen="sim">${ICONS.exam} Tiempos y datos</button>
-          <button type="button" class="btn btn-secondary" data-action="screen" data-screen="summary">${ICONS.summary} Informe</button>
-        </div>
-      </section>
-    `;
-  }
-
-  return `
-    <main class="workspace">
-      ${installNoticeHtml()}
-      ${activeBlock}
-
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Operaciones</h2>
-          <span class="text-muted text-sm">${state.students.length} alumnos · ${state.history.length} pruebas (${aptosCount} aptas)</span>
-        </div>
-        <div class="action-grid">
-          <button type="button" class="action-tile action-tile-primary" data-action="new-quick-simulation">
-            <span class="tile-icon">${ICONS.exam}</span>
-            <span class="tile-text">
-              <strong>Nueva prueba libre</strong>
-              <small>Iniciar simulación inmediata sin ficha previa</small>
-            </span>
-          </button>
-          <button type="button" class="action-tile" data-action="screen" data-screen="students">
-            <span class="tile-icon">${ICONS.users}</span>
-            <span class="tile-text">
-              <strong>Alumnos (${state.students.length})</strong>
-              <small>Seleccionar alumno e iniciar evaluación</small>
-            </span>
-          </button>
-          <button type="button" class="action-tile" data-action="screen" data-screen="student-new">
-            <span class="tile-icon">${ICONS.userPlus}</span>
-            <span class="tile-text">
-              <strong>Dar de alta alumno</strong>
-              <small>Registrar nombre, contacto y observaciones</small>
-            </span>
-          </button>
-          <button type="button" class="action-tile" data-action="screen" data-screen="history">
-            <span class="tile-icon">${ICONS.history}</span>
-            <span class="tile-text">
-              <strong>Historial de pruebas</strong>
-              <small>Consultar, duplicar o exportar evaluaciones</small>
-            </span>
-          </button>
-          <button type="button" class="action-tile action-tile-wide" data-action="screen" data-screen="settings">
-            <span class="tile-icon">${ICONS.settings}</span>
-            <span class="tile-text">
-              <strong>Copias de seguridad y ajustes</strong>
-              <small>Exportar/importar datos JSON y opciones de pantalla en vehículo</small>
-            </span>
-          </button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Pruebas recientes</h2>
-          ${state.history.length > 4 ? `<button type="button" class="btn btn-ghost btn-sm" data-action="screen" data-screen="history">Ver todas (${state.history.length})</button>` : ''}
-        </div>
-        ${recent.length ? `<div class="record-list">${recent.map(historyRowHtml).join('')}</div>` : emptyStateHtml('Sin pruebas registradas', 'Inicia una prueba libre o da de alta un alumno para comenzar.')}
-      </section>
-    </main>
-  `;
-}
-
-function newStudentView() {
-  const draft = state.studentDraft;
-  return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Ficha de nuevo alumno</h2>
-            <p class="panel-sub">Los datos quedan almacenados únicamente en este dispositivo.</p>
-          </div>
-        </div>
-        <div class="form-stack">
-          <label class="field">
-            <span class="field-label">Nombre y apellidos <abbr title="Obligatorio">*</abbr></span>
-            <input type="text" data-student-draft="name" value="${esc(draft.name)}" placeholder="Ej.: Laura Gómez Martín" autocomplete="off" />
-          </label>
-          <div class="field-grid-2">
-            <label class="field">
-              <span class="field-label">Teléfono</span>
-              <input type="tel" data-student-draft="phone" value="${esc(draft.phone)}" placeholder="600 000 000" inputmode="tel" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="field-label">Correo electrónico</span>
-              <input type="email" data-student-draft="email" value="${esc(draft.email)}" placeholder="alumno@ejemplo.es" inputmode="email" autocomplete="off" />
-            </label>
-          </div>
-          <label class="field">
-            <span class="field-label">Notas de seguimiento</span>
-            <textarea data-student-draft="notes" placeholder="Puntos a reforzar, horario habitual, vehículo...">${esc(draft.notes)}</textarea>
-          </label>
-        </div>
-        <div class="btn-row mt-16">
-          <button type="button" class="btn btn-primary" data-action="create-student-and-exam">${ICONS.exam} Guardar e iniciar prueba</button>
-          <button type="button" class="btn btn-secondary" data-action="create-student">Guardar ficha</button>
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function filteredStudentsHtml() {
-  const query = normalise(state.studentQuery);
-  const rows = state.students.filter((student) => {
-    if (!query) return true;
-    const haystack = normalise(`${student.name} ${student.phone} ${student.email} ${student.notes}`);
-    return haystack.includes(query);
-  });
-
-  if (!rows.length) {
-    return emptyStateHtml(
-      state.students.length ? 'Ningún alumno coincide con la búsqueda' : 'No hay alumnos dados de alta',
-      state.students.length ? 'Prueba con otro nombre o limpia el filtro.' : 'Pulsa «Alta alumno» para crear el primer expediente.'
-    );
-  }
-
-  return `<div class="record-list">${rows.map(studentRowHtml).join('')}</div>`;
-}
-
-function studentsView() {
-  return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Listado de alumnos</h2>
-            <p class="panel-sub">${state.students.length} expediente${state.students.length === 1 ? '' : 's'} en este dispositivo</p>
-          </div>
-          <button type="button" class="btn btn-primary btn-sm" data-action="screen" data-screen="student-new">${ICONS.plus} Alta alumno</button>
-        </div>
-        <div class="search-box">
-          <span class="search-icon">${ICONS.search}</span>
-          <input type="search" data-search="students" value="${esc(state.studentQuery)}" placeholder="Buscar por nombre, teléfono o notas..." autocomplete="off" />
-        </div>
-        <div id="student-results-container" class="mt-12">
-          ${filteredStudentsHtml()}
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function studentRowHtml(student) {
-  const exams = simulationsForStudent(student.id);
-  const latest = exams[0];
-  const latestEval = latest ? evaluateSimulation(latest.faults || []) : null;
-
-  return `
-    <article class="record-row">
-      <div class="record-main">
-        <div class="record-title-line">
-          <h3>${esc(student.name || 'Alumno sin nombre')}</h3>
-          ${latestEval ? statusPill(latestEval, true) : '<span class="meta-pill">Sin pruebas</span>'}
-        </div>
-        <p class="record-meta">
-          ${exams.length} prueba${exams.length === 1 ? '' : 's'}
-          ${latest ? ` · Última: ${formatDateEs(latest.date)}` : ''}
-          ${student.phone ? ` · ${esc(student.phone)}` : ''}
-        </p>
-      </div>
-      <div class="record-actions">
-        <button type="button" class="btn btn-secondary btn-sm" data-action="view-student" data-id="${esc(student.id)}">Ficha</button>
-        <button type="button" class="btn btn-primary btn-sm" data-action="new-exam-student" data-id="${esc(student.id)}">Iniciar prueba</button>
-      </div>
-    </article>
-  `;
-}
-
-function studentDetailView() {
-  const student = selectedStudent();
-  if (!student) {
-    return `
-      <main class="workspace">
-        <section class="panel">
-          ${emptyStateHtml('Ficha no encontrada', 'Selecciona un alumno desde el listado.')}
-          <div class="btn-row mt-12">
-            <button type="button" class="btn btn-secondary" data-action="screen" data-screen="students">Ir al listado de alumnos</button>
-          </div>
-        </section>
-      </main>
-    `;
-  }
-  const exams = simulationsForStudent(student.id);
-  const aptos = exams.filter((s) => !evaluateSimulation(s.faults || []).noApto).length;
-
-  return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <span class="section-tag">Expediente de alumno</span>
-            <h2 class="panel-title" id="student-detail-heading">${esc(student.name)}</h2>
-            <p class="panel-sub">${exams.length} prueba${exams.length === 1 ? '' : 's'} realizada${exams.length === 1 ? '' : 's'} (${aptos} apta${aptos === 1 ? '' : 's'}) · Guardado automático</p>
-          </div>
-          <button type="button" class="btn btn-primary" data-action="new-exam-student" data-id="${esc(student.id)}">${ICONS.exam} Nueva prueba</button>
-        </div>
-
-        <div class="form-stack mt-12">
-          <div class="field-grid-2">
-            <label class="field">
-              <span class="field-label">Nombre y apellidos</span>
-              <input type="text" data-student-field="name" data-id="${esc(student.id)}" value="${esc(student.name)}" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="field-label">Teléfono</span>
-              <input type="tel" data-student-field="phone" data-id="${esc(student.id)}" value="${esc(student.phone)}" inputmode="tel" autocomplete="off" />
-            </label>
-          </div>
-          <label class="field">
-            <span class="field-label">Correo electrónico</span>
-            <input type="email" data-student-field="email" data-id="${esc(student.id)}" value="${esc(student.email)}" inputmode="email" autocomplete="off" />
-          </label>
-          <label class="field">
-            <span class="field-label">Notas pedagógicas</span>
-            <textarea data-student-field="notes" data-id="${esc(student.id)}" placeholder="Evolución, puntos débiles, maniobras pendientes...">${esc(student.notes)}</textarea>
-          </label>
-        </div>
-
-        <div class="panel-footer-danger">
-          <span class="text-muted text-sm">Eliminar la ficha conserva sus exámenes en el historial general como pruebas libres.</span>
-          <button type="button" class="btn btn-danger-outline btn-sm" data-action="delete-student" data-id="${esc(student.id)}">${ICONS.trash} Eliminar alumno</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Historial del alumno (${exams.length})</h2>
-        </div>
-        ${exams.length ? `<div class="record-list">${exams.map(historyRowHtml).join('')}</div>` : emptyStateHtml('Sin pruebas todavía', 'Pulsa «Nueva prueba» para registrar la primera simulación de este alumno.')}
-      </section>
-    </main>
-  `;
-}
-
-function noActiveExamPanel(contextText) {
-  return `
-    <main class="workspace">
-      <section class="panel">
-        ${emptyStateHtml('No hay ninguna prueba activa', contextText)}
-        <div class="btn-row mt-12">
-          <button type="button" class="btn btn-primary" data-action="new-quick-simulation">${ICONS.exam} Iniciar prueba libre</button>
-          <button type="button" class="btn btn-secondary" data-action="screen" data-screen="students">${ICONS.users} Elegir alumno</button>
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function simulationView() {
-  if (!state.current) return noActiveExamPanel('Inicia una prueba libre o selecciona un alumno para registrar tiempos y faltas.');
-  ensureSimulationShape(state.current);
-  const sim = state.current;
-  const result = calculateCurrent();
-  const linkedStudent = sim.studentId ? state.students.find((s) => s.id === sim.studentId) : null;
-
-  return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <span class="section-tag">${sim.status === 'finalized' ? 'Prueba cerrada' : 'Prueba en curso'}</span>
-            <h2 class="panel-title" id="sim-student-heading">${esc(sim.studentName || 'Examen libre sin alumno')}</h2>
-            <p class="panel-sub">${linkedStudent ? 'Vinculado a expediente de alumno' : 'Sin vincular a ficha de alumno'}</p>
-          </div>
-          ${statusPill(result)}
-        </div>
-        ${kpiStripHtml(result)}
-        <div class="btn-row mt-12">
-          <button type="button" class="btn btn-primary" data-action="screen" data-screen="faults">${ICONS.plus} Añadir faltas (${sim.faults.length})</button>
-          <button type="button" class="btn btn-secondary" data-action="screen" data-screen="summary">${ICONS.summary} Ver informe / PDF</button>
-        </div>
-      </section>
-
-      ${timersSectionHtml()}
-
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Datos identificativos de la prueba</h2>
-        </div>
-        <div class="form-stack">
-          ${linkedStudent ? `
-            <div class="linked-banner">
-              <div>
-                <span class="field-label">Alumno asignado</span>
-                <strong>${esc(linkedStudent.name)}</strong>
-              </div>
-              <div class="btn-row-inline">
-                <button type="button" class="btn btn-secondary btn-sm" data-action="view-student" data-id="${esc(linkedStudent.id)}">Ver ficha</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-action="unlink-student">Desvincular</button>
-              </div>
-            </div>
-          ` : `
-            <label class="field">
-              <span class="field-label">Alumno/a</span>
-              <input type="text" data-field="studentName" value="${esc(sim.studentName)}" placeholder="Nombre del aspirante" autocomplete="off" list="students-datalist" />
-              <datalist id="students-datalist">
-                ${state.students.map((s) => `<option value="${esc(s.name)}"></option>`).join('')}
-              </datalist>
-            </label>
-          `}
-
-          <div class="field-grid-2">
-            <label class="field">
-              <span class="field-label">Fecha</span>
-              <input type="date" data-field="date" value="${esc(sim.date)}" />
-            </label>
-            <label class="field">
-              <span class="field-label">Zona / recorrido</span>
-              <input type="text" data-field="zone" value="${esc(sim.zone)}" placeholder="Ej.: Centro exámenes / Ruta 3" autocomplete="off" />
-            </label>
-          </div>
-
-          <div class="field-grid-2">
-            <label class="field">
-              <span class="field-label">Profesor/a evaluador</span>
-              <input type="text" data-field="teacher" value="${esc(sim.teacher)}" placeholder="Opcional" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="field-label">Vehículo / matrícula</span>
-              <input type="text" data-field="vehicle" value="${esc(sim.vehicle)}" placeholder="Ej.: 1234 MNP" autocomplete="off" />
-            </label>
-          </div>
-
-          <label class="field">
-            <span class="field-label">Observaciones generales de circulación</span>
-            <textarea data-field="generalNotes" placeholder="Valoración general, fluidez, adaptación al tráfico, autonomía...">${esc(sim.generalNotes)}</textarea>
-          </label>
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function getTimerButtonsHtml(key) {
-  ensureSimulationShape(state.current);
+function timerButtonsHtml(key) {
   const timer = state.current.timers[key];
   if (key === 'exam') {
     const elapsed = effectiveElapsed(timer);
     if (timer.running) {
       return `
-        <button type="button" class="btn btn-amber btn-sm" data-action="timer-pause" data-timer="exam">${ICONS.pause} Pausar</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="timer-reset" data-timer="exam">${ICONS.reset} Reiniciar</button>`;
+        <button type="button" class="t-btn t-btn-warn" data-action="timer-pause" data-timer="exam">Parar</button>
+        <button type="button" class="t-btn" data-action="timer-reset" data-timer="exam">Cero</button>`;
     }
-    if (elapsed > 0) {
-      return `
-        <button type="button" class="btn btn-primary btn-sm" data-action="timer-start" data-timer="exam">${ICONS.play} Reanudar</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="timer-reset" data-timer="exam">${ICONS.reset} Reiniciar</button>`;
-    }
-    return `<button type="button" class="btn btn-success btn-sm" data-action="timer-start" data-timer="exam">${ICONS.play} Iniciar</button>`;
+    return `
+      <button type="button" class="t-btn t-btn-go" data-action="timer-start" data-timer="exam">${elapsed > 0 ? 'Seguir' : 'Iniciar'}</button>
+      ${elapsed > 0 ? '<button type="button" class="t-btn" data-action="timer-reset" data-timer="exam">Cero</button>' : ''}`;
   }
 
   if (key === 'parking') {
     const elapsed = effectiveElapsed(timer);
     if (timer.running) {
       return `
-        <button type="button" class="btn btn-secondary btn-sm" data-action="timer-save-record">${ICONS.flag} Guardar</button>
-        <button type="button" class="btn btn-amber btn-sm" data-action="timer-pause" data-timer="parking">${ICONS.pause} Pausar</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="timer-reset" data-timer="parking">${ICONS.reset}</button>`;
+        <button type="button" class="t-btn t-btn-primary" data-action="timer-save-record">Anotar</button>
+        <button type="button" class="t-btn t-btn-warn" data-action="timer-pause" data-timer="parking">Parar</button>
+        <button type="button" class="t-btn" data-action="timer-reset" data-timer="parking">Cero</button>`;
     }
-    if (elapsed > 0) {
-      return `
-        <button type="button" class="btn btn-secondary btn-sm" data-action="timer-save-record">${ICONS.flag} Guardar</button>
-        <button type="button" class="btn btn-primary btn-sm" data-action="timer-start" data-timer="parking">${ICONS.play} Seguir</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="timer-reset" data-timer="parking">${ICONS.reset}</button>`;
-    }
-    return `<button type="button" class="btn btn-success btn-sm" data-action="timer-start" data-timer="parking">${ICONS.play} Iniciar</button>`;
+    return `
+      ${elapsed > 0 ? '<button type="button" class="t-btn t-btn-primary" data-action="timer-save-record">Anotar</button>' : ''}
+      <button type="button" class="t-btn t-btn-go" data-action="timer-start" data-timer="parking">${elapsed > 0 ? 'Seguir' : 'Iniciar'}</button>
+      ${elapsed > 0 ? '<button type="button" class="t-btn" data-action="timer-reset" data-timer="parking">Cero</button>' : ''}`;
   }
 
   if (key === 'countdown') {
-    const remaining = effectiveRemaining(timer);
-    const finished = remaining <= 0 && !timer.running;
+    const rem = effectiveRemaining(timer);
+    const done = rem <= 0 && !timer.running;
     if (timer.running) {
       return `
-        <button type="button" class="btn btn-amber btn-sm" data-action="countdown-pause">${ICONS.pause} Pausar</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="countdown-reset">${ICONS.reset} Reiniciar</button>`;
+        <button type="button" class="t-btn t-btn-warn" data-action="countdown-pause">Parar</button>
+        <button type="button" class="t-btn" data-action="countdown-reset">Reiniciar</button>`;
     }
-    if (finished) {
-      return `<button type="button" class="btn btn-primary btn-sm" data-action="countdown-reset">${ICONS.reset} Restablecer</button>`;
+    if (done) {
+      return '<button type="button" class="t-btn t-btn-primary" data-action="countdown-reset">Restablecer</button>';
     }
-    if (remaining < timer.durationMs) {
-      return `
-        <button type="button" class="btn btn-primary btn-sm" data-action="countdown-start">${ICONS.play} Reanudar</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="countdown-reset">${ICONS.reset} Reiniciar</button>`;
-    }
-    return `<button type="button" class="btn btn-success btn-sm" data-action="countdown-start">${ICONS.play} Iniciar (${countdownMinutes(timer)}m)</button>`;
+    return `
+      <button type="button" class="t-btn t-btn-go" data-action="countdown-start">${rem < timer.durationMs ? 'Seguir' : 'Iniciar'}</button>
+      ${rem < timer.durationMs ? '<button type="button" class="t-btn" data-action="countdown-reset">Reiniciar</button>' : ''}`;
   }
   return '';
 }
 
-function timerStateBadge(key, timer) {
-  if (key === 'countdown') {
-    const finished = effectiveRemaining(timer) <= 0 && !timer.running;
-    if (timer.running) return '<span class="timer-chip is-running">Activo</span>';
-    if (finished) return '<span class="timer-chip is-finished">Tiempo agotado</span>';
-    if (effectiveRemaining(timer) < timer.durationMs) return '<span class="timer-chip is-paused">En pausa</span>';
-    return '<span class="timer-chip">Preparado</span>';
-  }
-  const elapsed = effectiveElapsed(timer);
-  if (timer.running) return '<span class="timer-chip is-running">En marcha</span>';
-  if (elapsed > 0) return '<span class="timer-chip is-paused">Pausado</span>';
-  return '<span class="timer-chip">En cero</span>';
-}
-
 function refreshTimerControls(key) {
   if (!state.current) return;
-  ensureSimulationShape(state.current);
   const timer = state.current.timers[key];
   const btnBox = document.querySelector(`[data-timer-buttons="${key}"]`);
-  if (btnBox) btnBox.innerHTML = getTimerButtonsHtml(key);
-  const chipBox = document.querySelector(`[data-timer-status="${key}"]`);
-  if (chipBox) chipBox.innerHTML = timerStateBadge(key, timer);
+  if (btnBox) btnBox.innerHTML = timerButtonsHtml(key);
+
+  const stBox = document.querySelector(`[data-timer-status="${key}"]`);
+  if (stBox) {
+    if (key === 'countdown') {
+      const done = effectiveRemaining(timer) <= 0 && !timer.running;
+      stBox.textContent = timer.running ? 'ACTIVO' : done ? 'TIEMPO AGOTADO' : 'PREPARADO';
+    } else {
+      stBox.textContent = timer.running ? 'EN MARCHA' : effectiveElapsed(timer) > 0 ? 'PAUSADO' : 'PARADO';
+    }
+  }
+
+  if (key === 'exam') {
+    const topBtn = document.querySelector('#top-exam-timer-btn');
+    if (topBtn) {
+      topBtn.textContent = timer.running ? 'Parar' : 'Iniciar';
+      topBtn.dataset.action = timer.running ? 'timer-pause' : 'timer-start';
+      topBtn.className = `inst-btn ${timer.running ? 'is-stop' : 'is-start'}`;
+    }
+  }
 }
 
-function timersSectionHtml() {
-  ensureSimulationShape(state.current);
-  const { exam, parking, countdown } = state.current.timers;
-  const countdownFinished = effectiveRemaining(countdown) <= 0 && !countdown.running;
-  const wakeLockSupported = 'wakeLock' in navigator;
+function sheetHeaderFormHtml() {
+  const sim = state.current;
+  const linkedStudent = sim.studentId ? state.students.find((s) => s.id === sim.studentId) : null;
 
   return `
-    <section class="panel">
-      <div class="panel-header">
-        <div>
-          <h2 class="panel-title">Control de tiempos</h2>
-          <p class="panel-sub">La duración oficial habitual de circulación para permiso B es de 25 min.</p>
+    <section class="form-section">
+      <div class="candidate-strip">
+        <div class="candidate-cell">
+          <label class="cell-label" for="sheet-student-input">ASPIRANTE / ALUMNO</label>
+          <div class="candidate-input-row">
+            <input
+              id="sheet-student-input"
+              type="text"
+              class="bare-input"
+              data-field="studentName"
+              value="${esc(sim.studentName)}"
+              placeholder="Escribir apellidos y nombre o elegir..."
+              list="dgt-students-datalist"
+              autocomplete="off"
+            />
+            <datalist id="dgt-students-datalist">
+              ${state.students.map((s) => `<option value="${esc(s.name)}"></option>`).join('')}
+            </datalist>
+            ${linkedStudent ? `<button type="button" class="t-tag-btn" data-action="view-student" data-id="${esc(linkedStudent.id)}" title="Abrir expediente del alumno">Ficha</button>` : ''}
+          </div>
         </div>
-        ${wakeLockSupported ? `
-          <label class="switch-inline" title="Evita que el teléfono apague la pantalla durante el examen">
-            <input type="checkbox" data-toggle="wake-lock" ${state.wakeLockEnabled ? 'checked' : ''} />
-            <span>Pantalla activa</span>
-          </label>
-        ` : ''}
+
+        <div class="date-cell">
+          <label class="cell-label" for="sheet-date-input">FECHA</label>
+          <input id="sheet-date-input" type="date" class="bare-input" data-field="date" value="${esc(sim.date)}" />
+        </div>
+
+        <button type="button" class="expand-meta-btn ${state.showHeaderMeta ? 'is-open' : ''}" data-action="toggle-header-meta">
+          Datos ${state.showHeaderMeta ? '▴' : '▾'}
+        </button>
       </div>
 
-      <div class="timers-grid">
-        <article class="timer-box">
-          <div class="timer-box-top">
-            <span class="timer-box-label">Examen general</span>
-            <span data-timer-status="exam">${timerStateBadge('exam', exam)}</span>
+      ${state.showHeaderMeta ? `
+        <div class="meta-grid">
+          <div class="meta-cell">
+            <label class="cell-label">ZONA / RECORRIDO</label>
+            <input type="text" class="bare-input" data-field="zone" value="${esc(sim.zone)}" placeholder="Ej.: Ruta 4 / Móstoles" autocomplete="off" />
           </div>
-          <div class="clock-readout" data-timer-display="elapsed:exam">${formatClock(effectiveElapsed(exam))}</div>
-          <div class="timer-controls" data-timer-buttons="exam">${getTimerButtonsHtml('exam')}</div>
-        </article>
-
-        <article class="timer-box">
-          <div class="timer-box-top">
-            <input type="text" class="inline-label-input" data-timer-input="parkingLabel" value="${esc(parking.label || 'Maniobra')}" aria-label="Nombre de la maniobra" placeholder="Maniobra" autocomplete="off" />
-            <span data-timer-status="parking">${timerStateBadge('parking', parking)}</span>
+          <div class="meta-cell">
+            <label class="cell-label">MATRÍCULA / VEHÍCULO</label>
+            <input type="text" class="bare-input" data-field="vehicle" value="${esc(sim.vehicle)}" placeholder="Ej.: 0000-BBB" autocomplete="off" />
           </div>
-          <div class="clock-readout" data-timer-display="elapsed:parking">${formatClock(effectiveElapsed(parking))}</div>
-          <div class="timer-controls" data-timer-buttons="parking">${getTimerButtonsHtml('parking')}</div>
-        </article>
-
-        <article class="timer-box timer-box-wide ${countdownFinished ? 'is-expired' : ''}">
-          <div class="timer-box-top">
-            <span class="timer-box-label">Cuenta atrás programada</span>
-            <span data-timer-status="countdown">${timerStateBadge('countdown', countdown)}</span>
+          <div class="meta-cell">
+            <label class="cell-label">PROFESOR / EVALUADOR</label>
+            <input type="text" class="bare-input" data-field="teacher" value="${esc(sim.teacher)}" placeholder="Nombre evaluador" autocomplete="off" />
           </div>
-          <div class="countdown-layout">
-            <div class="clock-readout" data-timer-display="remaining:countdown">${formatClock(effectiveRemaining(countdown))}</div>
-            <div class="countdown-config">
-              <div class="preset-group" role="group" aria-label="Duración rápida">
-                ${[20, 25, 30, 45].map((min) => `
-                  <button type="button" class="chip-btn ${countdownMinutes(countdown) === min ? 'is-active' : ''}" data-action="set-countdown" data-minutes="${min}">${min} min</button>
-                `).join('')}
-                <label class="custom-min-input" title="Minutos personalizados">
-                  <input type="number" min="1" max="180" step="1" data-timer-input="countdownMinutes" value="${countdownMinutes(countdown)}" aria-label="Minutos cuenta atrás" />
-                  <span>min</span>
-                </label>
-              </div>
-              <div class="timer-controls" data-timer-buttons="countdown">${getTimerButtonsHtml('countdown')}</div>
-            </div>
+          <div class="meta-cell meta-cell-full">
+            <label class="cell-label">OBSERVACIONES GENERALES DE LA PRUEBA</label>
+            <textarea class="bare-textarea" rows="2" data-field="generalNotes" placeholder="Anotaciones generales del desarrollo de la circulación...">${esc(sim.generalNotes)}</textarea>
           </div>
-        </article>
-      </div>
-
-      ${parking.records.length ? `
-        <div class="saved-times-list">
-          <div class="saved-times-head">Maniobras guardadas (${parking.records.length})</div>
-          ${parking.records.map((rec) => `
-            <div class="saved-time-row">
-              <div>
-                <strong>${esc(rec.label || 'Maniobra')}</strong>
-                <span class="text-muted text-xs">${formatDateEs(rec.createdAt)}</span>
-              </div>
-              <div class="saved-time-right">
-                <span class="mono-time">${formatClock(rec.elapsedMs)}</span>
-                <button type="button" class="btn btn-ghost btn-xs text-danger" data-action="remove-time-record" data-id="${esc(rec.id)}" aria-label="Borrar tiempo">${ICONS.trash}</button>
-              </div>
-            </div>
-          `).join('')}
         </div>
       ` : ''}
     </section>
   `;
 }
 
-function groupedFaults() {
-  const query = normalise(state.query).trim();
-  const filter = state.filter;
-  const rows = catalog.filter((item) => {
-    const matchesFilter = filter === 'ALL' || item.tipo === filter;
-    if (!matchesFilter) return false;
-    if (!query) return true;
-    const searchable = normalise(`${item.id} ${item.falta} ${item.obs} ${item.bloque} ${item.nivel}`);
-    return searchable.includes(query);
-  });
+function markedFaultsInlineHtml() {
+  const faults = state.current?.faults || [];
+  if (!faults.length) return '';
 
-  const map = new Map();
-  rows.forEach((item) => {
-    if (!map.has(item.bloque)) map.set(item.bloque, []);
-    map.get(item.bloque).push(item);
-  });
-  return map;
+  return `
+    <details class="form-section marked-strip">
+      <summary class="section-bar clickable-bar">
+        <span>FALTAS IMPUTADAS EN ESTA PRUEBA (${faults.length})</span>
+        <span class="bar-hint">Desplegar / corregir ▾</span>
+      </summary>
+      <div class="marked-table">
+        ${faults.map((f, idx) => {
+          const cat = f.faultId != null ? catalogById.get(f.faultId) : null;
+          const data = cat || f.snapshot || f;
+          const tipo = data.tipo || f.tipo || 'L';
+          const code = cat?.code || String(data.bloque || '').split('.')[0] || '—';
+          return `
+            <div class="marked-row">
+              <span class="marked-code mono">${esc(code)}</span>
+              ${severityBox(tipo)}
+              <div class="marked-desc">
+                <span>${esc(data.falta || 'Falta')}</span>
+                ${f.note ? `<small class="marked-note-inline">Nota: ${esc(f.note)}</small>` : ''}
+              </div>
+              <button type="button" class="t-btn t-btn-danger-text" data-action="remove-fault" data-index="${idx}" title="Anular esta falta">Quitar</button>
+            </div>
+          `;
+        }).join('')}
+        <div class="marked-footer">
+          <button type="button" class="t-btn" data-action="clear-current">Anular todas</button>
+          <div class="marked-footer-right">
+            <button type="button" class="t-btn t-btn-primary" data-action="screen" data-screen="acta">Abrir Acta / PDF</button>
+          </div>
+        </div>
+      </div>
+    </details>
+  `;
 }
 
-function faultBlocksInnerHtml() {
-  const blocks = groupedFaults();
-  const markedById = faultCountsByCatalogId();
-  const forceOpen = Boolean(state.query.trim()) || state.filter !== 'ALL';
+function blockMatrixHtml() {
+  const blockCounts = faultCountsByBlock();
+  const totalMarked = state.current?.faults?.length || 0;
 
-  if (!blocks.size) {
-    return `
-      <div class="panel">
-        ${emptyStateHtml('Sin coincidencias en el catálogo', 'Prueba con otros términos (ej.: retrovisor, intermitente, carril, ceda) o restablece el filtro.')}
-        <div class="btn-row mt-12">
-          <button type="button" class="btn btn-secondary btn-sm" data-action="reset-fault-filters">Limpiar búsqueda y filtro</button>
+  return `
+    <section class="form-section">
+      <div class="section-bar">
+        <span>BLOQUES DE CALIFICACIÓN (1 – 15)</span>
+        <button type="button" class="bar-toggle-btn" data-action="toggle-block-grid">
+          ${state.showBlockGrid ? 'Ocultar cuadrícula ▴' : 'Mostrar cuadrícula ▾'}
+        </button>
+      </div>
+      ${state.showBlockGrid ? `
+        <div class="block-matrix" role="navigation" aria-label="Bloques del examen">
+          <button type="button" class="matrix-cell ${state.selectedBlock === 'ALL' ? 'is-selected' : ''}" data-action="select-block" data-block="ALL">
+            <span class="matrix-code">1-15</span>
+            <span class="matrix-name">Todos</span>
+            ${totalMarked > 0 ? `<em class="matrix-hit">${totalMarked}</em>` : ''}
+          </button>
+          ${uniqueBlocks.map((b) => {
+            const hits = blockCounts.get(b.bloque) || 0;
+            const active = state.selectedBlock === b.bloque;
+            return `
+              <button type="button" class="matrix-cell ${active ? 'is-selected' : ''} ${hits > 0 ? 'has-hits' : ''}" data-action="select-block" data-block="${esc(b.bloque)}">
+                <span class="matrix-code">${esc(b.code)}</span>
+                <span class="matrix-name">${esc(b.short)}</span>
+                ${hits > 0 ? `<em class="matrix-hit">${hits}</em>` : ''}
+              </button>
+            `;
+          }).join('')}
         </div>
+      ` : ''}
+    </section>
+  `;
+}
+
+function filterToolbarHtml() {
+  const severities = [
+    ['ALL', 'Todas'],
+    ['L', 'L · Leve'],
+    ['D', 'D · Defic.'],
+    ['E', 'E · Elimin.']
+  ];
+
+  return `
+    <div class="filter-toolbar">
+      <div class="filter-search">
+        <input
+          type="search"
+          id="catalog-search-input"
+          data-search="faults"
+          value="${esc(state.query)}"
+          placeholder="Filtrar por código (ej. 07.) o texto (intermitente, retrovisor, ceda...)"
+          autocomplete="off"
+        />
+        ${state.query ? '<button type="button" class="clear-x" data-action="clear-fault-query" aria-label="Limpiar texto">×</button>' : ''}
+      </div>
+      <div class="filter-sev-group" role="group" aria-label="Filtrar gravedad">
+        ${severities.map(([code, label]) => `
+          <button type="button" class="sev-filter-btn ${state.filter === code ? `is-active is-${code}` : ''}" data-action="filter" data-filter="${code}">
+            ${label}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function filteredCatalogGroups() {
+  const query = normalise(state.query).trim();
+  const filter = state.filter;
+  const blockFilter = state.selectedBlock;
+
+  const rows = enrichedCatalog.filter((item) => {
+    // Si hay texto en el buscador, buscar en todos los bloques para no ocultar resultados
+    if (!query && blockFilter !== 'ALL' && item.bloque !== blockFilter) return false;
+    if (filter !== 'ALL' && item.tipo !== filter) return false;
+    if (!query) return true;
+    const haystack = normalise(`${item.code} ${item.falta} ${item.obs} ${item.bloque} ${item.nivel}`);
+    return haystack.includes(query);
+  });
+
+  const groups = new Map();
+  for (const item of rows) {
+    if (!groups.has(item.bloque)) groups.set(item.bloque, []);
+    groups.get(item.bloque).push(item);
+  }
+  return groups;
+}
+
+function catalogTableInnerHtml() {
+  const groups = filteredCatalogGroups();
+  const countsById = faultCountsByCatalogId();
+  const forceOpen = Boolean(state.query.trim()) || state.filter !== 'ALL' || state.selectedBlock !== 'ALL';
+
+  if (!groups.size) {
+    return `
+      <div class="empty-row">
+        <span>No hay criterios que coincidan con el filtro seleccionado.</span>
+        <button type="button" class="t-btn" data-action="reset-fault-filters">Mostrar todos los bloques</button>
       </div>
     `;
   }
 
-  return [...blocks.entries()].map(([block, rows]) => {
-    const isOpen = forceOpen || state.openBlocks.has(block);
-    const markedInBlock = rows.reduce((sum, item) => sum + (markedById.get(item.id) || 0), 0);
+  return [...groups.entries()].map(([bloque, items]) => {
+    const isOpen = forceOpen || state.openBlocks.has(bloque);
+    const markedSum = items.reduce((acc, it) => acc + (countsById.get(it.id) || 0), 0);
+    const meta = BLOCK_SHORT_META[bloque];
+    const cleanTitle = String(bloque).replace(/^\d+\.\s*/, '').toUpperCase();
 
     return `
-      <details class="fault-group" data-block="${esc(block)}" ${isOpen ? 'open' : ''}>
-        <summary class="fault-group-header">
-          <span class="fault-group-title">${esc(block)}</span>
-          <span class="fault-group-badges">
-            ${markedInBlock > 0 ? `<span class="marked-pill">${markedInBlock} marcada${markedInBlock === 1 ? '' : 's'}</span>` : ''}
-            <span class="count-pill">${rows.length}</span>
+      <details class="dgt-block" data-block="${esc(bloque)}" ${isOpen ? 'open' : ''}>
+        <summary class="dgt-block-head">
+          <span class="dgt-block-code mono">${esc(meta?.code || '')}</span>
+          <span class="dgt-block-title">${esc(cleanTitle)}</span>
+          <span class="dgt-block-right">
+            ${markedSum > 0 ? `<strong class="block-marked-tag">${markedSum} anot.</strong>` : ''}
+            <span class="block-total-count mono">[${items.length}]</span>
           </span>
         </summary>
-        <div class="fault-group-body">
-          ${rows.map((item) => {
-            const count = markedById.get(item.id) || 0;
+
+        <div class="dgt-rows">
+          ${items.map((item) => {
+            const count = countsById.get(item.id) || 0;
+            const itemNotes = count > 0
+              ? (state.current?.faults || []).filter((f) => f.faultId === item.id && f.note).map((f) => f.note)
+              : [];
+
             return `
-              <div class="catalog-row ${count > 0 ? 'is-marked' : ''}">
-                <button type="button" class="catalog-row-main" data-action="open-fault" data-id="${item.id}">
-                  ${badge(item.tipo)}
-                  <span class="catalog-row-text">
-                    <span class="catalog-row-title">
-                      ${esc(item.falta)}
-                      ${count > 0 ? `<em class="fault-hit-count" data-fault-count="${item.id}">×${count}</em>` : ''}
-                    </span>
-                    ${item.obs ? `<small class="catalog-row-obs">${esc(item.obs)}</small>` : ''}
+              <div class="dgt-fault-row ${count > 0 ? `is-marked is-marked-${item.tipo}` : ''}" data-fault-row="${item.id}">
+                <button type="button" class="fault-cell-info" data-action="open-fault" data-id="${item.id}" title="Pulsar para añadir con nota detallada">
+                  <span class="fault-cell-code">
+                    <span class="mono code-num">${esc(item.code)}</span>
+                    ${severityBox(item.tipo)}
+                  </span>
+                  <span class="fault-cell-desc">
+                    <span class="fault-main-text">${esc(item.falta)}</span>
+                    ${item.obs ? `<span class="fault-sub-text">${esc(item.obs)}</span>` : ''}
+                    ${itemNotes.length ? `<span class="fault-saved-note">Nota: ${esc(itemNotes.join(' | '))}</span>` : ''}
                   </span>
                 </button>
-                <button type="button" class="quick-add-btn" data-action="quick-add-fault" data-id="${item.id}" title="Anotar +1 falta directamente" aria-label="Anotar falta: ${esc(item.falta)}">
-                  ${ICONS.plus}
-                </button>
+
+                <div class="fault-cell-stepper">
+                  ${count > 0 ? `
+                    <button type="button" class="step-btn step-minus" data-action="decrement-fault" data-id="${item.id}" aria-label="Restar falta ${esc(item.code)}">−</button>
+                    <span class="step-count mono">${count}</span>
+                  ` : ''}
+                  <button type="button" class="step-btn step-plus" data-action="quick-add-fault" data-id="${item.id}" aria-label="Anotar falta ${esc(item.code)}">+</button>
+                </div>
               </div>
             `;
           }).join('')}
@@ -1122,372 +865,508 @@ function faultBlocksInnerHtml() {
   }).join('');
 }
 
-function faultsView() {
-  if (!state.current) return noActiveExamPanel('Debes tener una prueba abierta para imputar faltas del catálogo oficial.');
-
-  const filters = [
-    ['ALL', 'Todas'],
-    ['L', 'Leves (L)'],
-    ['D', 'Deficientes (D)'],
-    ['E', 'Eliminatorias (E)']
-  ];
-
+function sheetView() {
   return `
-    <main class="workspace">
-      <section class="sticky-filter-bar">
-        <div class="search-box">
-          <span class="search-icon">${ICONS.search}</span>
-          <input type="search" id="fault-search-input" data-search="faults" value="${esc(state.query)}" placeholder="Buscar criterio (intermitente, prioridad, embrague...)" autocomplete="off" />
-          ${state.query ? `<button type="button" class="search-clear" data-action="clear-fault-query" aria-label="Borrar búsqueda">${ICONS.close}</button>` : ''}
-        </div>
-        <div class="segmented-row" role="tablist" aria-label="Filtrar por gravedad">
-          ${filters.map(([code, label]) => `
-            <button type="button" class="seg-btn ${state.filter === code ? 'is-active' : ''} seg-${code}" data-action="filter" data-filter="${code}">
-              ${label}
-            </button>
-          `).join('')}
+    <main class="dgt-sheet">
+      ${timersDrawerHtml()}
+      ${sheetHeaderFormHtml()}
+      <div id="marked-faults-slot">${markedFaultsInlineHtml()}</div>
+      <div id="block-matrix-slot">${blockMatrixHtml()}</div>
+      <section class="form-section catalog-section">
+        ${filterToolbarHtml()}
+        <div id="catalog-table-container">
+          ${catalogTableInnerHtml()}
         </div>
       </section>
-
-      <section id="fault-blocks-container" class="fault-groups-stack">
-        ${faultBlocksInnerHtml()}
-      </section>
-
-      ${faultSheetHtml()}
+      ${faultNoteModalHtml()}
     </main>
   `;
 }
 
-function faultSheetHtml() {
+function faultNoteModalHtml() {
   if (!state.openFault) return '';
   const item = catalogById.get(state.openFault);
   if (!item) return '';
-  const currentHits = (state.current?.faults || []).filter((f) => f.faultId === item.id).length;
+  const hits = (state.current?.faults || []).filter((f) => f.faultId === item.id).length;
 
   return `
-    <div class="sheet-backdrop" data-action="close-sheet"></div>
-    <section class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-fault-title">
-      <div class="sheet-header">
-        <div class="sheet-meta">
-          ${badge(item.tipo)}
-          <span>${esc(item.bloque)} · Falta ${esc(levelName(item.tipo).toLowerCase())}</span>
-        </div>
-        <button type="button" class="icon-btn icon-btn-light" data-action="close-sheet" aria-label="Cerrar">${ICONS.close}</button>
+    <div class="modal-backdrop" data-action="close-sheet"></div>
+    <section class="dgt-modal" role="dialog" aria-modal="true" aria-labelledby="modal-fault-heading">
+      <div class="dgt-modal-bar">
+        <span>IMPUTACIÓN CON OBSERVACIÓN · CÓD. ${esc(item.code)}</span>
+        <button type="button" class="modal-close-x" data-action="close-sheet" aria-label="Cerrar">×</button>
       </div>
+      <div class="dgt-modal-body">
+        <div class="modal-fault-header">
+          ${severityBox(item.tipo)}
+          <div>
+            <h2 id="modal-fault-heading">${esc(item.falta)}</h2>
+            <p class="modal-sub">${esc(item.bloque)} · Gravedad ${esc(levelName(item.tipo))}${hits > 0 ? ` · Anotada ${hits} vez/veces` : ''}</p>
+          </div>
+        </div>
+        ${item.obs ? `<p class="modal-criterion">${esc(item.obs)}</p>` : ''}
 
-      <h2 id="sheet-fault-title" class="sheet-title">${esc(item.falta)}</h2>
-      ${item.obs ? `<p class="sheet-criterion">${esc(item.obs)}</p>` : ''}
-      ${currentHits > 0 ? `<p class="sheet-already">Ya anotada <strong>${currentHits}</strong> ${currentHits === 1 ? 'vez' : 'veces'} en esta prueba.</p>` : ''}
+        <label class="cell-label mt-10" for="fault-note">OBSERVACIÓN ESPECÍFICA (PUNTO DEL RECORRIDO / DETALLE)</label>
+        <textarea id="fault-note" class="bare-textarea framed-input" rows="3" placeholder="Ej.: Glorieta salida 2, no cede paso a vehículo prioritario..."></textarea>
 
-      <label class="field mt-12">
-        <span class="field-label">Observación concreta (ubicación, maniobra o detalle)</span>
-        <textarea id="fault-note" rows="3" placeholder="Ej.: Glorieta Av. Europa, no observa retrovisor izquierdo..."></textarea>
-      </label>
-
-      <div class="btn-row mt-16">
-        <button type="button" class="btn btn-primary" data-action="add-fault-continue" data-id="${item.id}">${ICONS.plus} Añadir y seguir en catálogo</button>
-        <button type="button" class="btn btn-secondary" data-action="add-fault" data-id="${item.id}">Añadir e ir al informe</button>
+        <div class="modal-actions">
+          <button type="button" class="t-btn" data-action="close-sheet">Cancelar</button>
+          <button type="button" class="t-btn t-btn-primary" data-action="add-fault-continue" data-id="${item.id}">Imputar falta</button>
+        </div>
       </div>
     </section>
   `;
 }
 
-function summaryView() {
-  if (!state.current) return noActiveExamPanel('Abre una prueba del historial o inicia una nueva para generar su informe.');
+function actaView() {
   ensureSimulationShape(state.current);
   const sim = state.current;
-  const result = calculateCurrent();
+  const res = calculateCurrent();
   const timers = sim.timers;
   const records = timers.parking?.records || [];
 
   return `
-    <main class="workspace print-sheet">
-      <section class="panel report-header-panel">
-        <div class="report-top">
+    <main class="dgt-sheet acta-sheet">
+      <div class="acta-toolbar no-print">
+        <button type="button" class="t-btn" data-action="screen" data-screen="sheet">‹ Volver a la Hoja</button>
+        <div class="acta-toolbar-right">
+          <button type="button" class="t-btn t-btn-primary" data-action="pdf" ${state.pdfBusy ? 'disabled' : ''}>
+            ${state.pdfBusy ? 'Generando...' : 'Descargar PDF'}
+          </button>
+          <button type="button" class="t-btn" data-action="print">Imprimir acta</button>
+          ${sim.status === 'finalized' ? `
+            <button type="button" class="t-btn" data-action="reopen">Reabrir edición</button>
+          ` : `
+            <button type="button" class="t-btn t-btn-go" data-action="finalize">Cerrar acta</button>
+          `}
+        </div>
+      </div>
+
+      <section class="official-form">
+        <div class="official-title-band">
           <div>
-            <span class="section-tag">Informe de simulación · Permiso B</span>
-            <h2 class="report-student">${esc(sim.studentName || 'Aspirante sin identificar')}</h2>
-            <p class="panel-sub">
-              Fecha: <strong>${formatDateEs(sim.date)}</strong>
-              ${sim.zone ? ` · Recorrido: <strong>${esc(sim.zone)}</strong>` : ''}
-              ${sim.vehicle ? ` · Vehículo: <strong>${esc(sim.vehicle)}</strong>` : ''}
-              ${sim.teacher ? ` · Evaluador: <strong>${esc(sim.teacher)}</strong>` : ''}
-            </p>
+            <strong>ACTA DE EVALUACIÓN · PRUEBA PRÁCTICA DE CIRCULACIÓN</strong>
+            <span>PERMISO DE CONDUCCIÓN CLASE B</span>
           </div>
-          <div class="verdict-box ${result.noApto ? 'is-noapto' : 'is-apto'}">
-            <strong>${result.result}</strong>
-            <small>${sim.status === 'finalized' ? 'Prueba cerrada' : 'Resultado provisional'}</small>
+          <span class="official-state-tag">${sim.status === 'finalized' ? 'ACTA CERRADA' : 'EN CURSO'}</span>
+        </div>
+
+        <div class="official-grid">
+          <div class="off-cell off-span-2">
+            <span class="cell-label">ASPIRANTE</span>
+            <strong>${esc(sim.studentName || '—')}</strong>
+          </div>
+          <div class="off-cell">
+            <span class="cell-label">FECHA</span>
+            <strong class="mono">${formatDateEs(sim.date, '—')}</strong>
+          </div>
+          <div class="off-cell">
+            <span class="cell-label">ZONA / RECORRIDO</span>
+            <strong>${esc(sim.zone || '—')}</strong>
+          </div>
+          <div class="off-cell">
+            <span class="cell-label">VEHÍCULO</span>
+            <strong class="mono">${esc(sim.vehicle || '—')}</strong>
+          </div>
+          <div class="off-cell">
+            <span class="cell-label">EVALUADOR / PROFESOR</span>
+            <strong>${esc(sim.teacher || '—')}</strong>
           </div>
         </div>
 
-        ${result.reasons.length ? `
-          <div class="verdict-reasons">
-            <strong>Causa de calificación NO APTO:</strong> ${esc(result.reasons.join(' · '))}.
+        <div class="official-score-band">
+          <div class="off-score-cell">
+            <span class="cell-label">FALTAS LEVES (L)</span>
+            <strong class="mono">${res.L}</strong>
+          </div>
+          <div class="off-score-cell">
+            <span class="cell-label">DEFICIENTES (D)</span>
+            <strong class="mono">${res.D}</strong>
+          </div>
+          <div class="off-score-cell">
+            <span class="cell-label">ELIMINATORIAS (E)</span>
+            <strong class="mono">${res.E}</strong>
+          </div>
+          <div class="off-score-cell">
+            <span class="cell-label">TOTAL FALTAS</span>
+            <strong class="mono">${res.total}</strong>
+          </div>
+          <div class="off-score-cell off-verdict-cell ${res.noApto ? 'is-noapto' : 'is-apto'}">
+            <span class="cell-label">CALIFICACIÓN</span>
+            <strong>${res.result}</strong>
+          </div>
+        </div>
+
+        ${res.reasons.length ? `
+          <div class="official-cause">
+            <strong>MOTIVO DE NO APTO:</strong> ${esc(res.reasons.join(' · '))}.
           </div>
         ` : ''}
 
-        ${kpiStripHtml(result)}
-
-        <div class="btn-row wrap mt-16 no-print">
-          <button type="button" class="btn btn-primary" data-action="pdf" ${state.pdfBusy ? 'disabled' : ''}>
-            ${ICONS.download} ${state.pdfBusy ? 'Generando PDF...' : 'Descargar PDF'}
-          </button>
-          <button type="button" class="btn btn-secondary" data-action="print">${ICONS.print} Imprimir</button>
-          ${sim.status === 'finalized' ? `
-            <button type="button" class="btn btn-secondary" data-action="reopen">${ICONS.exam} Reabrir edición</button>
-          ` : `
-            <button type="button" class="btn btn-success" data-action="finalize">${ICONS.check} Finalizar prueba</button>
-          `}
-          <button type="button" class="btn btn-ghost" data-action="screen" data-screen="faults">${ICONS.plus} Añadir falta</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Tiempos registrados</h2>
-        </div>
-        <div class="summary-times-row">
-          <div class="summary-time-item">
-            <span>Duración circulación</span>
-            <strong data-timer-display="elapsed:exam">${formatClock(effectiveElapsed(timers.exam))}</strong>
+        <div class="section-bar">TIEMPOS REGISTRADOS</div>
+        <div class="official-times-grid">
+          <div class="off-cell">
+            <span class="cell-label">DURACIÓN CIRCULACIÓN</span>
+            <strong class="mono" data-timer-display="elapsed:exam">${formatClock(effectiveElapsed(timers.exam))}</strong>
           </div>
-          <div class="summary-time-item">
-            <span>${esc(timers.parking?.label || 'Maniobra')}</span>
-            <strong data-timer-display="elapsed:parking">${formatClock(effectiveElapsed(timers.parking))}</strong>
+          <div class="off-cell">
+            <span class="cell-label">${esc((timers.parking?.label || 'MANIOBRA').toUpperCase())}</span>
+            <strong class="mono" data-timer-display="elapsed:parking">${formatClock(effectiveElapsed(timers.parking))}</strong>
           </div>
-          <div class="summary-time-item">
-            <span>Cuenta atrás restante</span>
-            <strong data-timer-display="remaining:countdown">${formatClock(effectiveRemaining(timers.countdown))}</strong>
+          <div class="off-cell">
+            <span class="cell-label">CUENTA ATRÁS RESTANTE</span>
+            <strong class="mono" data-timer-display="remaining:countdown">${formatClock(effectiveRemaining(timers.countdown))}</strong>
           </div>
         </div>
         ${records.length ? `
-          <div class="saved-times-list mt-12">
-            ${records.map((rec) => `
-              <div class="saved-time-row">
-                <strong>${esc(rec.label || 'Maniobra')}</strong>
-                <span class="mono-time">${formatClock(rec.elapsedMs)}</span>
-              </div>
-            `).join('')}
+          <div class="official-sublist">
+            ${records.map((r) => `<div class="off-subrow"><span>${esc(r.label || 'Maniobra')}</span><strong class="mono">${formatClock(r.elapsedMs)}</strong></div>`).join('')}
           </div>
         ` : ''}
-      </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Faltas calificadas (${sim.faults.length})</h2>
-          ${sim.faults.length ? `<button type="button" class="btn btn-danger-outline btn-sm no-print" data-action="clear-current">${ICONS.trash} Vaciar faltas</button>` : ''}
+        <div class="section-bar">
+          <span>DESGLOSE DE FALTAS CALIFICADAS (${sim.faults.length})</span>
+          ${sim.faults.length ? '<button type="button" class="bar-toggle-btn no-print" data-action="clear-current">Vaciar faltas</button>' : ''}
         </div>
         ${sim.faults.length ? `
-          <div class="marked-faults-list">
-            ${sim.faults.map((fault, index) => faultSummaryItemHtml(fault, index)).join('')}
+          <div class="official-faults-table">
+            <div class="off-fault-thead">
+              <span>Nº</span>
+              <span>CÓD.</span>
+              <span>TIPO</span>
+              <span>DESCRIPCIÓN DEL CRITERIO / OBSERVACIONES</span>
+              <span class="no-print"></span>
+            </div>
+            ${sim.faults.map((f, idx) => {
+              const cat = f.faultId != null ? catalogById.get(f.faultId) : null;
+              const data = cat || f.snapshot || f;
+              const tipo = data.tipo || f.tipo || 'L';
+              const code = cat?.code || '—';
+              return `
+                <div class="off-fault-trow">
+                  <span class="mono text-muted">${idx + 1}</span>
+                  <span class="mono">${esc(code)}</span>
+                  <span>${severityBox(tipo)}</span>
+                  <div class="off-fault-desc">
+                    <strong>${esc(data.falta || 'Falta')}</strong>
+                    <span>${esc(data.bloque || '')} (${esc(levelName(tipo))})</span>
+                    ${f.note ? `<div class="off-fault-note">Observación: ${esc(f.note)}</div>` : ''}
+                  </div>
+                  <button type="button" class="t-link-danger no-print" data-action="remove-fault" data-index="${idx}">Quitar</button>
+                </div>
+              `;
+            }).join('')}
           </div>
-        ` : '<p class="text-muted no-margin">No se han registrado faltas en esta prueba.</p>'}
-      </section>
+        ` : '<div class="empty-row">Sin faltas imputadas en la presente prueba.</div>'}
 
-      ${sim.generalNotes ? `
-        <section class="panel">
-          <h2 class="panel-title">Observaciones generales</h2>
-          <p class="notes-paragraph">${esc(sim.generalNotes)}</p>
-        </section>
-      ` : ''}
+        <div class="section-bar">OBSERVACIONES GENERALES</div>
+        <div class="official-notes-box">
+          ${sim.generalNotes ? esc(sim.generalNotes) : '<span class="text-muted">Sin observaciones adicionales.</span>'}
+        </div>
+      </section>
     </main>
   `;
 }
 
-function faultSummaryItemHtml(fault, index) {
-  const data = fault.snapshot || catalogById.get(fault.faultId) || fault;
-  const tipo = data.tipo || fault.tipo || 'L';
-  return `
-    <article class="marked-fault-item">
-      <div class="marked-fault-body">
-        <div class="marked-fault-head">
-          <span class="marked-index">${index + 1}.</span>
-          ${badge(tipo)}
-          <h3>${esc(data.falta || 'Falta registrada')}</h3>
-        </div>
-        <p class="marked-fault-meta">${esc(data.bloque || 'General')} · ${esc(levelName(tipo))}</p>
-        ${data.obs ? `<p class="marked-fault-obs">${esc(data.obs)}</p>` : ''}
-        ${fault.note ? `<p class="marked-fault-note"><strong>Nota:</strong> ${esc(fault.note)}</p>` : ''}
-      </div>
-      <button type="button" class="btn btn-ghost btn-sm text-danger no-print" data-action="remove-fault" data-index="${index}" aria-label="Quitar falta">Quitar</button>
-    </article>
-  `;
-}
-
-function filteredHistoryHtml() {
-  const query = normalise(state.historyQuery).trim();
-  const filter = state.historyFilter;
-
-  const rows = state.history.filter((sim) => {
-    const res = evaluateSimulation(sim.faults || []);
-    if (filter === 'APTO' && res.noApto) return false;
-    if (filter === 'NO_APTO' && !res.noApto) return false;
-    if (filter === 'DRAFT' && sim.status === 'finalized') return false;
-    if (!query) return true;
-    const haystack = normalise(`${sim.studentName} ${sim.zone} ${sim.teacher} ${sim.vehicle} ${sim.date}`);
-    return haystack.includes(query);
+function studentsListInnerHtml() {
+  const q = normalise(state.studentQuery).trim();
+  const rows = state.students.filter((s) => {
+    if (!q) return true;
+    return normalise(`${s.name} ${s.phone} ${s.email} ${s.notes}`).includes(q);
   });
 
   if (!rows.length) {
-    return emptyStateHtml(
-      state.history.length ? 'Ninguna prueba coincide con el filtro' : 'No hay pruebas guardadas',
-      state.history.length ? 'Cambia el filtro o el texto de búsqueda.' : 'Las pruebas que inicies quedarán registradas aquí.'
-    );
+    return `<div class="empty-row">${state.students.length ? 'Ningún expediente coincide con la búsqueda.' : 'No hay alumnos registrados. Pulsa «+ Alta de alumno» para crear uno.'}</div>`;
   }
 
-  return `<div class="record-list">${rows.map(historyRowHtml).join('')}</div>`;
-}
-
-function historyView() {
-  const filters = [
-    ['ALL', 'Todas'],
-    ['APTO', 'Aptas'],
-    ['NO_APTO', 'No aptas'],
-    ['DRAFT', 'En curso']
-  ];
-
   return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Historial de evaluaciones</h2>
-            <p class="panel-sub">${state.history.length} prueba${state.history.length === 1 ? '' : 's'} almacenada${state.history.length === 1 ? '' : 's'} en el navegador</p>
-          </div>
-          <button type="button" class="btn btn-primary btn-sm" data-action="new-quick-simulation">${ICONS.plus} Prueba libre</button>
-        </div>
-
-        <div class="search-box">
-          <span class="search-icon">${ICONS.search}</span>
-          <input type="search" data-search="history" value="${esc(state.historyQuery)}" placeholder="Buscar por alumno, recorrido, vehículo..." autocomplete="off" />
-        </div>
-
-        <div class="segmented-row mt-8">
-          ${filters.map(([code, label]) => `
-            <button type="button" class="seg-btn ${state.historyFilter === code ? 'is-active' : ''}" data-action="history-filter" data-filter="${code}">${label}</button>
-          `).join('')}
-        </div>
-
-        <div id="history-results-container" class="mt-12">
-          ${filteredHistoryHtml()}
-        </div>
-      </section>
-    </main>
-  `;
-}
-
-function historyRowHtml(sim) {
-  const result = evaluateSimulation(sim.faults || []);
-  const student = sim.studentId ? state.students.find((item) => item.id === sim.studentId) : null;
-  const isCurrent = state.current?.id === sim.id;
-
-  return `
-    <article class="record-row ${isCurrent ? 'is-current-row' : ''}">
-      <div class="record-main">
-        <div class="record-title-line">
-          <h3>${esc(sim.studentName || student?.name || 'Prueba libre sin alumno')}</h3>
-          ${statusPill(result, true)}
-          ${isCurrent ? '<span class="meta-pill is-blue">Abierta</span>' : ''}
-        </div>
-        <p class="record-meta">
-          ${formatDateEs(sim.date)}
-          ${sim.zone ? ` · ${esc(sim.zone)}` : ''}
-          · <strong>${result.L}L · ${result.D}D · ${result.E}E</strong>
-          · ${sim.status === 'finalized' ? 'Finalizada' : 'Borrador'}
-        </p>
+    <div class="data-table">
+      <div class="data-thead students-cols">
+        <span>ALUMNO / EXPEDIENTE</span>
+        <span>CONTACTO</span>
+        <span>PRUEBAS</span>
+        <span>ÚLTIMA</span>
+        <span>ACCIONES</span>
       </div>
-      <div class="record-actions">
-        <button type="button" class="btn btn-secondary btn-sm" data-action="load-simulation" data-id="${esc(sim.id)}">Abrir</button>
-        <button type="button" class="btn btn-ghost btn-sm" data-action="duplicate" data-id="${esc(sim.id)}">Duplicar</button>
-        <button type="button" class="btn btn-ghost btn-sm text-danger" data-action="delete" data-id="${esc(sim.id)}" aria-label="Borrar prueba">${ICONS.trash}</button>
-      </div>
-    </article>
-  `;
-}
-
-function settingsView() {
-  const wakeLockSupported = 'wakeLock' in navigator;
-  return `
-    <main class="workspace">
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h2 class="panel-title">Copias de seguridad (JSON)</h2>
-            <p class="panel-sub">Todos los alumnos y exámenes se guardan localmente en IndexedDB de este navegador. Exporta una copia periódicamente para no perder datos si borras el historial de Safari o Chrome.</p>
+      ${rows.map((s) => {
+        const exams = simulationsForStudent(s.id);
+        const latest = exams[0];
+        const latestRes = latest ? evaluateSimulation(latest.faults || []) : null;
+        return `
+          <div class="data-trow students-cols">
+            <div class="cell-primary">
+              <strong>${esc(s.name)}</strong>
+              ${s.notes ? `<small>${esc(s.notes.slice(0, 70))}${s.notes.length > 70 ? '…' : ''}</small>` : ''}
+            </div>
+            <div class="cell-secondary">${esc([s.phone, s.email].filter(Boolean).join(' · ') || '—')}</div>
+            <div class="cell-mono mono">${exams.length}</div>
+            <div>
+              ${latestRes
+                ? `<span class="verdict-tag ${latestRes.noApto ? 'is-noapto' : 'is-apto'}">${latestRes.result}</span>`
+                : '<span class="text-muted">—</span>'}
+            </div>
+            <div class="cell-actions">
+              <button type="button" class="t-btn t-btn-primary" data-action="new-exam-student" data-id="${esc(s.id)}">Abrir hoja</button>
+              <button type="button" class="t-btn" data-action="view-student" data-id="${esc(s.id)}">Expediente</button>
+            </div>
           </div>
-        </div>
-        <div class="btn-row wrap">
-          <button type="button" class="btn btn-primary" data-action="export-all">${ICONS.download} Exportar copia completa</button>
-          <button type="button" class="btn btn-secondary" data-action="export-json" ${!state.current ? 'disabled' : ''}>${ICONS.download} Exportar prueba activa</button>
-          <label class="btn btn-secondary file-upload-btn" for="import-json-file">
-            ${ICONS.upload} Importar copia JSON
-          </label>
-          <input id="import-json-file" type="file" accept="application/json,.json" data-import="json" class="sr-only-input" />
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel-title">Preferencias en el vehículo</h2>
-        <div class="setting-item">
-          <div>
-            <strong>Mantener pantalla encendida en examen</strong>
-            <p class="text-muted text-sm no-margin">
-              ${wakeLockSupported
-                ? 'Impide el bloqueo automático de pantalla mientras tengas una prueba abierta.'
-                : 'Tu navegador actual no soporta la API Screen Wake Lock. Ajusta el bloqueo automático en Ajustes del teléfono.'}
-            </p>
-          </div>
-          <label class="switch-inline">
-            <input type="checkbox" data-toggle="wake-lock" ${state.wakeLockEnabled ? 'checked' : ''} ${wakeLockSupported ? '' : 'disabled'} />
-            <span>${state.wakeLockEnabled ? 'Activado' : 'Desactivado'}</span>
-          </label>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2 class="panel-title">Criterios de calificación (Permiso B)</h2>
-        <ul class="rules-list">
-          <li><strong>NO APTO directo:</strong> 1 falta eliminatoria (<strong>E</strong>), 2 faltas deficientes (<strong>D</strong>), 1 deficiente + 5 leves (<strong>1D + 5L</strong>) o 10 faltas leves (<strong>10L</strong>).</li>
-          <li><strong>Catálogo cargado:</strong> ${catalog.length} criterios oficiales distribuidos por bloques de maniobra y circulación.</li>
-          <li><strong>Instalación móvil:</strong> En iOS (Safari → Compartir → Añadir a pantalla de inicio) o Android (Chrome → Instalar aplicación) sobre conexión HTTPS o red local.</li>
-        </ul>
-      </section>
-    </main>
-  `;
-}
-
-function emptyStateHtml(title, text) {
-  return `
-    <div class="empty-box">
-      <strong>${esc(title)}</strong>
-      <p>${esc(text)}</p>
+        `;
+      }).join('')}
     </div>
   `;
 }
 
-function toastInnerHtml() {
-  return state.toast ? `<div class="toast-pill" role="status" aria-live="polite">${esc(state.toast)}</div>` : '';
+function studentsView() {
+  const draft = state.studentDraft;
+  return `
+    <main class="dgt-sheet">
+      <section class="form-section">
+        <div class="section-bar">
+          <span>DIRECTORIO DE ALUMNOS (${state.students.length})</span>
+          <button type="button" class="bar-toggle-btn" data-action="toggle-new-student">
+            ${state.showNewStudentForm ? 'Cerrar alta ▴' : '+ Alta de alumno'}
+          </button>
+        </div>
+
+        ${state.showNewStudentForm ? `
+          <div class="new-student-box">
+            <div class="meta-grid">
+              <div class="meta-cell">
+                <label class="cell-label">APELLIDOS Y NOMBRE *</label>
+                <input type="text" class="bare-input" data-student-draft="name" value="${esc(draft.name)}" placeholder="Ej.: Martínez Ruiz, Carlos" autocomplete="off" />
+              </div>
+              <div class="meta-cell">
+                <label class="cell-label">TELÉFONO</label>
+                <input type="tel" class="bare-input" data-student-draft="phone" value="${esc(draft.phone)}" placeholder="600 000 000" inputmode="tel" autocomplete="off" />
+              </div>
+              <div class="meta-cell">
+                <label class="cell-label">CORREO ELECTRÓNICO</label>
+                <input type="email" class="bare-input" data-student-draft="email" value="${esc(draft.email)}" placeholder="correo@ejemplo.es" inputmode="email" autocomplete="off" />
+              </div>
+              <div class="meta-cell meta-cell-full">
+                <label class="cell-label">OBSERVACIONES DE SEGUIMIENTO</label>
+                <textarea class="bare-textarea" rows="2" data-student-draft="notes" placeholder="Anotaciones del alumno...">${esc(draft.notes)}</textarea>
+              </div>
+            </div>
+            <div class="form-action-bar">
+              <button type="button" class="t-btn" data-action="toggle-new-student">Cancelar</button>
+              <button type="button" class="t-btn" data-action="create-student">Guardar ficha</button>
+              <button type="button" class="t-btn t-btn-primary" data-action="create-student-and-exam">Guardar y abrir hoja</button>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="filter-toolbar">
+          <div class="filter-search">
+            <input type="search" data-search="students" value="${esc(state.studentQuery)}" placeholder="Buscar alumno por nombre, teléfono o notas..." autocomplete="off" />
+          </div>
+        </div>
+
+        <div id="student-results-container">
+          ${studentsListInnerHtml()}
+        </div>
+      </section>
+    </main>
+  `;
+}
+
+function studentDetailView() {
+  const student = selectedStudent();
+  if (!student) {
+    return `
+      <main class="dgt-sheet">
+        <section class="form-section">
+          <div class="empty-row">
+            <span>Expediente no encontrado.</span>
+            <button type="button" class="t-btn" data-action="screen" data-screen="students">Volver a alumnos</button>
+          </div>
+        </section>
+      </main>
+    `;
+  }
+  const exams = simulationsForStudent(student.id);
+
+  return `
+    <main class="dgt-sheet">
+      <div class="acta-toolbar">
+        <button type="button" class="t-btn" data-action="screen" data-screen="students">‹ Directorio de alumnos</button>
+        <div class="acta-toolbar-right">
+          <button type="button" class="t-btn t-btn-danger-text" data-action="delete-student" data-id="${esc(student.id)}">Eliminar ficha</button>
+          <button type="button" class="t-btn t-btn-primary" data-action="new-exam-student" data-id="${esc(student.id)}">+ Nueva hoja para este alumno</button>
+        </div>
+      </div>
+
+      <section class="form-section">
+        <div class="section-bar">DATOS DEL EXPEDIENTE (GUARDADO AUTOMÁTICO)</div>
+        <div class="meta-grid">
+          <div class="meta-cell">
+            <label class="cell-label">APELLIDOS Y NOMBRE</label>
+            <input type="text" class="bare-input" data-student-field="name" data-id="${esc(student.id)}" value="${esc(student.name)}" autocomplete="off" />
+          </div>
+          <div class="meta-cell">
+            <label class="cell-label">TELÉFONO</label>
+            <input type="tel" class="bare-input" data-student-field="phone" data-id="${esc(student.id)}" value="${esc(student.phone)}" inputmode="tel" autocomplete="off" />
+          </div>
+          <div class="meta-cell">
+            <label class="cell-label">CORREO ELECTRÓNICO</label>
+            <input type="email" class="bare-input" data-student-field="email" data-id="${esc(student.id)}" value="${esc(student.email)}" inputmode="email" autocomplete="off" />
+          </div>
+          <div class="meta-cell meta-cell-full">
+            <label class="cell-label">NOTAS PEDAGÓGICAS</label>
+            <textarea class="bare-textarea" rows="3" data-student-field="notes" data-id="${esc(student.id)}" placeholder="Evolución del alumno...">${esc(student.notes)}</textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="section-bar">PRUEBAS REALIZADAS POR EL ALUMNO (${exams.length})</div>
+        ${exams.length ? archiveTableHtml(exams) : '<div class="empty-row">Todavía no se han registrado pruebas para este alumno.</div>'}
+      </section>
+    </main>
+  `;
+}
+
+function archiveTableHtml(list) {
+  return `
+    <div class="data-table">
+      <div class="data-thead archive-cols">
+        <span>FECHA</span>
+        <span>ASPIRANTE / ZONA</span>
+        <span>CÓMPUTO</span>
+        <span>RESULTADO</span>
+        <span>ACCIONES</span>
+      </div>
+      ${list.map((sim) => {
+        const res = evaluateSimulation(sim.faults || []);
+        const isCurrent = state.currentPersisted && state.current?.id === sim.id;
+        return `
+          <div class="data-trow archive-cols ${isCurrent ? 'is-active-row' : ''}">
+            <div class="cell-mono mono">${formatDateEs(sim.date)}</div>
+            <div class="cell-primary">
+              <strong>${esc(sim.studentName || 'Sin nombre')} ${isCurrent ? '<em class="open-flag">[ABIERTA]</em>' : ''}</strong>
+              <small>${esc(sim.zone || 'Sin recorrido')} · ${sim.status === 'finalized' ? 'Cerrada' : 'En curso'}</small>
+            </div>
+            <div class="cell-mono mono">${res.L}L · ${res.D}D · ${res.E}E</div>
+            <div>
+              <span class="verdict-tag ${res.noApto ? 'is-noapto' : 'is-apto'}">${res.result}</span>
+            </div>
+            <div class="cell-actions">
+              <button type="button" class="t-btn t-btn-primary" data-action="load-simulation" data-id="${esc(sim.id)}">Abrir</button>
+              <button type="button" class="t-btn" data-action="duplicate" data-id="${esc(sim.id)}">Duplicar</button>
+              <button type="button" class="t-btn t-btn-danger-text" data-action="delete" data-id="${esc(sim.id)}">Borrar</button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function filteredArchiveInnerHtml() {
+  const q = normalise(state.historyQuery).trim();
+  const f = state.historyFilter;
+  const rows = state.history.filter((sim) => {
+    const res = evaluateSimulation(sim.faults || []);
+    if (f === 'APTO' && res.noApto) return false;
+    if (f === 'NO_APTO' && !res.noApto) return false;
+    if (f === 'DRAFT' && sim.status === 'finalized') return false;
+    if (!q) return true;
+    return normalise(`${sim.studentName} ${sim.zone} ${sim.vehicle} ${sim.teacher} ${sim.date}`).includes(q);
+  });
+
+  if (!rows.length) {
+    return `<div class="empty-row">${state.history.length ? 'Ninguna prueba coincide con el filtro.' : 'No hay pruebas guardadas en el archivo.'}</div>`;
+  }
+  return archiveTableHtml(rows);
+}
+
+function archiveView() {
+  const filters = [
+    ['ALL', 'Todas'],
+    ['APTO', 'Aptas'],
+    ['NO_APTO', 'No aptas'],
+    ['DRAFT', 'Abiertas']
+  ];
+
+  return `
+    <main class="dgt-sheet">
+      <section class="form-section">
+        <div class="section-bar">COPIAS DE SEGURIDAD Y ALMACENAMIENTO LOCAL (JSON)</div>
+        <div class="backup-bar">
+          <span class="backup-note">Datos guardados en IndexedDB local del navegador. Exporta respaldo antes de limpiar datos del navegador.</span>
+          <div class="backup-buttons">
+            <button type="button" class="t-btn t-btn-primary" data-action="export-all">Exportar todo (.json)</button>
+            <button type="button" class="t-btn" data-action="export-json">Exportar hoja actual</button>
+            <label class="t-btn file-upload-btn" for="import-json-file">Importar copia (.json)</label>
+            <input id="import-json-file" type="file" accept="application/json,.json" data-import="json" class="sr-only-input" />
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="section-bar">ARCHIVO DE PRUEBAS GUARDADAS (${state.history.length})</div>
+        <div class="filter-toolbar">
+          <div class="filter-search">
+            <input type="search" data-search="history" value="${esc(state.historyQuery)}" placeholder="Buscar por aspirante, zona, matrícula o fecha..." autocomplete="off" />
+          </div>
+          <div class="filter-sev-group">
+            ${filters.map(([code, label]) => `
+              <button type="button" class="sev-filter-btn ${state.historyFilter === code ? 'is-active' : ''}" data-action="history-filter" data-filter="${code}">${label}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div id="history-results-container">
+          ${filteredArchiveInnerHtml()}
+        </div>
+      </section>
+    </main>
+  `;
+}
+
+function updateScoreStripDom() {
+  const res = calculateCurrent();
+  const lEl = document.querySelector('#tally-L');
+  const dEl = document.querySelector('#tally-D');
+  const eEl = document.querySelector('#tally-E');
+  const vEl = document.querySelector('#tally-verdict');
+  if (lEl) lEl.textContent = String(res.L);
+  if (dEl) dEl.textContent = String(res.D);
+  if (eEl) eEl.textContent = String(res.E);
+  if (vEl) {
+    vEl.textContent = res.result;
+    vEl.className = `inst-verdict ${res.noApto ? 'is-noapto' : 'is-apto'}`;
+  }
+}
+
+function updateSheetFaultPartials() {
+  updateScoreStripDom();
+  const markedSlot = document.querySelector('#marked-faults-slot');
+  if (markedSlot) markedSlot.innerHTML = markedFaultsInlineHtml();
+  const matrixSlot = document.querySelector('#block-matrix-slot');
+  if (matrixSlot) matrixSlot.innerHTML = blockMatrixHtml();
+  const tableContainer = document.querySelector('#catalog-table-container');
+  if (tableContainer) tableContainer.innerHTML = catalogTableInnerHtml();
 }
 
 function render() {
+  if (!state.current) {
+    state.current = ensureSimulationShape(emptySimulation());
+    state.currentPersisted = false;
+  }
+
   const views = {
-    home: homeView,
-    'student-new': newStudentView,
+    sheet: sheetView,
+    acta: actaView,
     students: studentsView,
     'student-detail': studentDetailView,
-    sim: simulationView,
-    faults: faultsView,
-    summary: summaryView,
-    history: historyView,
-    settings: settingsView
+    archive: archiveView
   };
+
   app.innerHTML = `
-    ${topBar()}
-    ${activeExamStrip()}
-    <div class="alerts-container">${alertHtml()}</div>
-    ${(views[state.screen] || homeView)()}
-    ${bottomNav()}
-    <div id="toast-root">${toastInnerHtml()}</div>
+    ${topChromeHtml()}
+    ${alertBannerHtml()}
+    ${(views[state.screen] || sheetView)()}
+    <div id="status-toast">${state.toast ? `<div class="dgt-toast" role="status">${esc(state.toast)}</div>` : ''}</div>
   `;
   updateTimerDisplays();
   syncTimerLoop();
@@ -1507,12 +1386,18 @@ async function persistCurrent() {
     if (student) state.current.studentName = student.name;
   }
   await putSimulation(state.current);
+  state.currentPersisted = true;
   await putSetting('currentSimulationId', state.current.id);
   await refreshData();
+  // Actualizar contadores de las pestañas superiores sin reconstruir el DOM activo
+  const archiveTab = document.querySelector('[data-screen="archive"]');
+  if (archiveTab) archiveTab.textContent = `Archivo (${state.history.length})`;
+  const studentsTab = document.querySelector('[data-screen="students"]');
+  if (studentsTab) studentsTab.textContent = `Alumnos (${state.students.length})`;
 }
 
 let persistDebounceTimer;
-function schedulePersistCurrent(delay = 300) {
+function schedulePersistCurrent(delay = 280) {
   window.clearTimeout(persistDebounceTimer);
   persistDebounceTimer = window.setTimeout(() => {
     persistCurrent().catch((error) => showUserError(error, 'save'));
@@ -1520,7 +1405,7 @@ function schedulePersistCurrent(delay = 300) {
 }
 
 let studentPersistDebounceTimer;
-function scheduleStudentPersist(student, delay = 300) {
+function scheduleStudentPersist(student, delay = 280) {
   window.clearTimeout(studentPersistDebounceTimer);
   studentPersistDebounceTimer = window.setTimeout(async () => {
     try {
@@ -1529,7 +1414,7 @@ function scheduleStudentPersist(student, delay = 300) {
       await refreshData();
       if (state.current?.studentId === student.id) {
         state.current.studentName = student.name;
-        await persistCurrent();
+        if (state.currentPersisted) await persistCurrent();
       }
     } catch (error) {
       showUserError(error, 'save');
@@ -1538,9 +1423,9 @@ function scheduleStudentPersist(student, delay = 300) {
 }
 
 async function pauseAndSaveActiveIfNeeded() {
-  if (!state.current) return true;
+  if (!state.current || !state.currentPersisted) return true;
   if (hasRunningTimers(state.current.timers)) {
-    const ok = window.confirm('La prueba actual tiene un cronómetro en marcha. ¿Pausarlo y cambiar de prueba?');
+    const ok = window.confirm('La hoja actual tiene un cronómetro en marcha. ¿Detenerlo y abrir otra hoja?');
     if (!ok) return false;
     pauseAllTimers(state.current.timers);
   }
@@ -1552,25 +1437,16 @@ async function updateField(target, { immediate = false } = {}) {
   const field = target.dataset.field;
   if (!field || !state.current) return;
   state.current[field] = target.value;
+
   if (field === 'studentName') {
-    const simHeading = document.querySelector('#sim-student-heading');
-    if (simHeading) simHeading.textContent = state.current.studentName || 'Examen libre sin alumno';
-    const subTitle = document.querySelector('.topbar-titles p');
-    if (subTitle && state.screen === 'sim') subTitle.textContent = state.current.studentName || 'Examen libre';
+    const trimmed = target.value.trim();
+    const match = trimmed ? state.students.find((s) => normalise(s.name) === normalise(trimmed)) : null;
+    state.current.studentId = match ? match.id : null;
+    if (match && immediate) state.current.studentName = match.name;
   }
-  if (immediate) {
-    // Si escribió el nombre exacto de un alumno existente y no estaba vinculado, ofrecer vínculo automático limpio
-    if (field === 'studentName' && !state.current.studentId) {
-      const match = state.students.find((s) => normalise(s.name) === normalise(target.value.trim()));
-      if (match) {
-        state.current.studentId = match.id;
-        state.current.studentName = match.name;
-      }
-    }
-    await persistCurrent();
-  } else {
-    schedulePersistCurrent();
-  }
+
+  if (immediate) await persistCurrent();
+  else schedulePersistCurrent();
 }
 
 function updateStudentDraft(target) {
@@ -1585,19 +1461,13 @@ async function updateStudentField(target, { immediate = false } = {}) {
   const student = state.students.find((item) => item.id === id);
   if (!student || !field) return;
   student[field] = target.value;
-  if (field === 'name') {
-    const detailHeading = document.querySelector('#student-detail-heading');
-    if (detailHeading) detailHeading.textContent = student.name || 'Ficha de alumno';
-    const topHeading = document.querySelector('.topbar-titles h1');
-    if (topHeading && state.screen === 'student-detail') topHeading.textContent = student.name || 'Ficha de alumno';
-  }
   if (immediate) {
     student.updatedAt = nowIso();
     await putStudent(student);
     await refreshData();
     if (state.current?.studentId === student.id) {
       state.current.studentName = student.name;
-      await persistCurrent();
+      if (state.currentPersisted) await persistCurrent();
     }
   } else {
     scheduleStudentPersist(student);
@@ -1621,12 +1491,12 @@ function handleTimerInput(target, { immediate = false } = {}) {
 async function createStudent({ startExam = false } = {}) {
   const name = String(state.studentDraft.name || '').trim();
   if (!name) {
-    setUserAlert('Nombre obligatorio', 'Introduce el nombre y apellidos del alumno para guardar su expediente.', { code: 'STUDENT_NAME_REQUIRED' });
+    setUserAlert('Campo obligatorio', 'Introduce apellidos y nombre del alumno.', { code: 'STUDENT_NAME_REQUIRED' });
     return;
   }
   const existing = state.students.find((s) => normalise(s.name) === normalise(name));
   if (existing) {
-    const proceed = window.confirm(`Ya existe un alumno llamado «${existing.name}». ¿Quieres crear otra ficha distinta igualmente?`);
+    const proceed = window.confirm(`Ya figura un expediente para «${existing.name}». ¿Crear otro igualmente?`);
     if (!proceed) return;
   }
   const student = emptyStudent({
@@ -1637,13 +1507,14 @@ async function createStudent({ startExam = false } = {}) {
   });
   await putStudent(student);
   state.studentDraft = emptyStudentDraft();
+  state.showNewStudentForm = false;
   await refreshData();
   state.selectedStudentId = student.id;
-  setToast('Ficha de alumno guardada');
+  setToast('Expediente guardado');
   if (startExam) {
     await startSimulationForStudent(student.id);
   } else {
-    navigateTo('student-detail');
+    render();
   }
 }
 
@@ -1652,7 +1523,7 @@ async function removeStudent(studentId) {
   if (!student) return;
   const exams = simulationsForStudent(studentId);
   const msg = exams.length
-    ? `¿Eliminar la ficha de «${student.name}»? Sus ${exams.length} prueba(s) se conservarán en el historial general como pruebas libres.`
+    ? `¿Eliminar la ficha de «${student.name}»? Sus ${exams.length} prueba(s) permanecerán en el Archivo.`
     : `¿Eliminar la ficha de «${student.name}»?`;
   if (!window.confirm(msg)) return;
 
@@ -1664,12 +1535,12 @@ async function removeStudent(studentId) {
   if (state.current?.studentId === studentId) {
     state.current.studentId = null;
     if (!state.current.studentName) state.current.studentName = student.name;
-    await persistCurrent();
+    if (state.currentPersisted) await persistCurrent();
   }
   await deleteStudent(studentId);
   if (state.selectedStudentId === studentId) state.selectedStudentId = null;
   await refreshData();
-  setToast('Ficha de alumno eliminada');
+  setToast('Ficha eliminada');
   navigateTo('students');
 }
 
@@ -1678,47 +1549,54 @@ async function startSimulationForStudent(studentId) {
   if (!canSwitch) return;
   const student = state.students.find((item) => item.id === studentId) || await getStudent(studentId);
   if (!student) {
-    setUserAlert('Alumno no encontrado', 'No se ha encontrado la ficha del alumno seleccionado.', { code: 'STUDENT_NOT_FOUND' });
+    setUserAlert('Alumno no encontrado', 'No existe la ficha solicitada.', { code: 'STUDENT_NOT_FOUND' });
     return;
   }
   state.current = ensureSimulationShape(emptySimulation(student));
   state.selectedStudentId = student.id;
   await persistCurrent();
-  navigateTo('sim');
+  setToast(`Hoja abierta: ${student.name}`);
+  navigateTo('sheet');
 }
 
-async function startQuickSimulation() {
-  if (state.current && state.current.status !== 'finalized' && (state.current.faults?.length || state.current.studentName || hasRunningTimers(state.current.timers))) {
-    const ok = window.confirm('¿Iniciar una prueba nueva? La prueba actual quedará guardada en el historial.');
+async function startBlankSheet() {
+  const hasWork = state.current && (
+    state.current.faults?.length > 0 ||
+    Boolean(state.current.studentName?.trim()) ||
+    hasRunningTimers(state.current.timers) ||
+    effectiveElapsed(state.current.timers?.exam) > 0
+  );
+
+  if (hasWork && state.current.status !== 'finalized') {
+    const ok = window.confirm('¿Abrir una nueva hoja de calificación en blanco? La actual quedará guardada en el Archivo.');
     if (!ok) return;
     pauseAllTimers(state.current.timers);
     await persistCurrent();
   }
+
   state.current = ensureSimulationShape(emptySimulation());
-  await persistCurrent();
-  navigateTo('sim');
+  state.currentPersisted = false;
+  await putSetting('currentSimulationId', null);
+  syncTimerLoop();
+  setToast('Nueva hoja en blanco');
+  navigateTo('sheet');
 }
 
 async function viewStudent(id) {
   const student = state.students.find((item) => item.id === id) || await getStudent(id);
   if (!student) {
-    setUserAlert('Alumno no encontrado', 'El expediente solicitado ya no existe.', { code: 'STUDENT_NOT_FOUND' });
+    setUserAlert('Expediente no encontrado', 'La ficha ya no existe.', { code: 'STUDENT_NOT_FOUND' });
     return;
   }
   state.selectedStudentId = student.id;
   navigateTo('student-detail');
 }
 
-async function recordFault(id, { note = '', goSummary = false } = {}) {
-  if (!state.current) return;
+async function recordFault(id, { note = '' } = {}) {
   const item = catalogById.get(Number(id));
-  if (!item) {
-    setUserAlert('Criterio no encontrado', 'La falta seleccionada no figura en el catálogo.', { code: 'FAULT_CATALOG_NOT_FOUND' });
-    return;
-  }
-  if (state.current.status === 'finalized') {
-    state.current.status = 'draft';
-  }
+  if (!item) return;
+  if (state.current.status === 'finalized') state.current.status = 'draft';
+
   state.current.faults.push({
     uid: makeId('fault'),
     faultId: item.id,
@@ -1727,11 +1605,33 @@ async function recordFault(id, { note = '', goSummary = false } = {}) {
     snapshot: { ...item },
     createdAt: nowIso()
   });
+
+  const hadModal = Boolean(state.openFault);
   state.openFault = null;
   await persistCurrent();
-  setToast(`+1 ${levelName(item.tipo)}: ${item.falta.slice(0, 42)}${item.falta.length > 42 ? '…' : ''}`);
-  if (goSummary) navigateTo('summary');
-  else render();
+  setToast(`+${item.code} [${item.tipo}] anotada`);
+
+  if (state.screen === 'sheet' && !hadModal) {
+    updateSheetFaultPartials();
+  } else {
+    render();
+  }
+}
+
+async function decrementFaultByCatalogId(id) {
+  const faultId = Number(id);
+  const faults = state.current?.faults || [];
+  for (let i = faults.length - 1; i >= 0; i -= 1) {
+    if (faults[i].faultId === faultId) {
+      const removed = faults.splice(i, 1)[0];
+      const item = catalogById.get(faultId);
+      await persistCurrent();
+      setToast(`−${item?.code || ''} [${removed.tipo}] retirada`);
+      if (state.screen === 'sheet') updateSheetFaultPartials();
+      else render();
+      return;
+    }
+  }
 }
 
 function setTimerStatus(key, running) {
@@ -1751,35 +1651,24 @@ function setTimerStatus(key, running) {
 }
 
 async function startStopwatch(key) {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   setTimerStatus(key, true);
   await persistCurrent();
   syncTimerLoop();
-  if (state.screen === 'sim') {
-    updateTimerDisplays();
-    refreshTimerControls(key);
-  } else {
-    render();
-  }
+  updateTimerDisplays();
+  refreshTimerControls(key);
 }
 
 async function pauseStopwatch(key) {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   setTimerStatus(key, false);
   await persistCurrent();
   syncTimerLoop();
-  if (state.screen === 'sim') {
-    updateTimerDisplays();
-    refreshTimerControls(key);
-  } else {
-    render();
-  }
+  updateTimerDisplays();
+  refreshTimerControls(key);
 }
 
 async function resetStopwatch(key) {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   const timer = state.current.timers[key];
   if (!timer) return;
@@ -1793,14 +1682,10 @@ async function resetStopwatch(key) {
 }
 
 async function saveParkingRecord() {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   const timer = state.current.timers.parking;
   const elapsedMs = effectiveElapsed(timer);
-  if (elapsedMs <= 0) {
-    setUserAlert('Cronómetro en cero', 'Inicia el cronómetro de maniobra antes de guardar una marca.', { code: 'NO_TIME_TO_SAVE' });
-    return;
-  }
+  if (elapsedMs <= 0) return;
   timer.records.unshift({
     id: makeId('time'),
     label: String(timer.label || 'Maniobra').trim() || 'Maniobra',
@@ -1813,20 +1698,18 @@ async function saveParkingRecord() {
   timer.startedAt = null;
   await persistCurrent();
   syncTimerLoop();
-  setToast('Tiempo de maniobra registrado');
+  setToast('Marca de maniobra guardada');
   render();
 }
 
 async function removeTimeRecord(id) {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
-  state.current.timers.parking.records = state.current.timers.parking.records.filter((record) => record.id !== id);
+  state.current.timers.parking.records = state.current.timers.parking.records.filter((r) => r.id !== id);
   await persistCurrent();
   render();
 }
 
 function applyCountdownDuration(value, { renderAfter = false } = {}) {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   const minutes = validateCountdownMinutes(value);
   const countdown = state.current.timers.countdown;
@@ -1840,7 +1723,6 @@ function applyCountdownDuration(value, { renderAfter = false } = {}) {
 }
 
 async function startCountdown() {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   if (state.current.status === 'finalized') state.current.status = 'draft';
   const countdown = state.current.timers.countdown;
@@ -1850,14 +1732,12 @@ async function startCountdown() {
   countdown.endedAt = null;
   await persistCurrent();
   syncTimerLoop();
-  const box = document.querySelector('.timer-box-wide');
-  if (box) box.classList.remove('is-expired');
+  document.querySelector('.timer-cell-full')?.classList.remove('is-expired');
   updateTimerDisplays();
   refreshTimerControls('countdown');
 }
 
 async function pauseCountdown() {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   const countdown = state.current.timers.countdown;
   countdown.remainingMs = effectiveRemaining(countdown);
@@ -1870,7 +1750,6 @@ async function pauseCountdown() {
 }
 
 async function resetCountdown() {
-  if (!state.current) return;
   ensureSimulationShape(state.current);
   const countdown = state.current.timers.countdown;
   countdown.remainingMs = countdown.durationMs;
@@ -1879,15 +1758,13 @@ async function resetCountdown() {
   countdown.endedAt = null;
   await persistCurrent();
   syncTimerLoop();
-  const box = document.querySelector('.timer-box-wide');
-  if (box) box.classList.remove('is-expired');
+  document.querySelector('.timer-cell-full')?.classList.remove('is-expired');
   updateTimerDisplays();
   refreshTimerControls('countdown');
 }
 
 function updateTimerDisplays() {
   if (!state.current) return;
-  ensureSimulationShape(state.current);
   const timers = state.current.timers;
   document.querySelectorAll('[data-timer-display]').forEach((node) => {
     const [mode, key, variant] = node.dataset.timerDisplay.split(':');
@@ -1895,6 +1772,9 @@ function updateTimerDisplays() {
     if (!timer) return;
     const ms = mode === 'remaining' ? effectiveRemaining(timer) : effectiveElapsed(timer);
     node.innerHTML = formatClock(ms, { showTenths: variant !== 'compact' });
+    if (key === 'exam' && variant === 'compact') {
+      node.classList.toggle('is-running', Boolean(timer.running));
+    }
   });
 
   const countdown = timers.countdown;
@@ -1906,9 +1786,8 @@ function updateTimerDisplays() {
     syncTimerLoop();
     persistCurrent().catch((error) => showUserError(error, 'save'));
     playCountdownAlert();
-    setToast('Tiempo de cuenta atrás cumplido');
-    const box = document.querySelector('.timer-box-wide');
-    if (box) box.classList.add('is-expired');
+    setToast('FIN DE TIEMPO REGLAMENTARIO');
+    document.querySelector('.timer-cell-full')?.classList.add('is-expired');
     refreshTimerControls('countdown');
   }
 }
@@ -1920,23 +1799,21 @@ async function loadSimulation(id) {
   }
   const sim = await getSimulation(id);
   if (!sim) {
-    setUserAlert('Prueba no encontrada', 'El examen seleccionado ya no se encuentra en la base de datos.', { code: 'SIMULATION_NOT_FOUND' });
+    setUserAlert('Prueba no encontrada', 'El registro ya no figura en el archivo.', { code: 'SIMULATION_NOT_FOUND' });
     return;
   }
   state.current = ensureSimulationShape(sim);
+  state.currentPersisted = true;
   state.selectedStudentId = sim.studentId || null;
   await putSetting('currentSimulationId', sim.id);
-  navigateTo(sim.status === 'finalized' ? 'summary' : 'sim');
+  navigateTo(sim.status === 'finalized' ? 'acta' : 'sheet');
 }
 
 async function duplicateSimulation(id) {
   const canSwitch = await pauseAndSaveActiveIfNeeded();
   if (!canSwitch) return;
   const original = await getSimulation(id);
-  if (!original) {
-    setUserAlert('No se pudo duplicar', 'El examen original no existe o no se pudo leer.', { code: 'DUPLICATE_NOT_FOUND' });
-    return;
-  }
+  if (!original) return;
   const timersCopy = sanitizeTimers(original.timers, { makeId, nowIso });
   pauseAllTimers(timersCopy);
   const copy = ensureSimulationShape({
@@ -1951,11 +1828,12 @@ async function duplicateSimulation(id) {
   });
   await putSimulation(copy);
   state.current = copy;
+  state.currentPersisted = true;
   state.selectedStudentId = copy.studentId || null;
   await refreshData();
   await putSetting('currentSimulationId', copy.id);
-  setToast('Prueba duplicada');
-  navigateTo('sim');
+  setToast('Hoja duplicada');
+  navigateTo('sheet');
 }
 
 function downloadJson(data, filename) {
@@ -2020,11 +1898,12 @@ async function handleImport(input) {
     await migrateExistingSimulationsToStudents();
     await refreshData();
 
-    if (state.current) {
-      const updatedCurrent = await getSimulation(state.current.id);
-      if (updatedCurrent) state.current = ensureSimulationShape(updatedCurrent);
+    if (state.currentPersisted && state.current) {
+      const refreshed = await getSimulation(state.current.id);
+      if (refreshed) state.current = ensureSimulationShape(refreshed);
     } else if (state.history.length) {
       state.current = ensureSimulationShape(state.history[0]);
+      state.currentPersisted = true;
       await putSetting('currentSimulationId', state.current.id);
     }
 
@@ -2048,17 +1927,45 @@ async function handleAction(target) {
   }
   clearUserAlert();
 
-  if (action === 'go-back') {
-    if (state.screen === 'student-detail' || state.screen === 'student-new') {
-      navigateTo('students');
-    } else {
-      navigateTo('home');
-    }
+  if (action === 'screen') {
+    navigateTo(target.dataset.screen);
     return;
   }
 
-  if (action === 'screen') {
-    navigateTo(target.dataset.screen);
+  if (action === 'new-sheet') return startBlankSheet();
+
+  if (action === 'toggle-header-meta') {
+    state.showHeaderMeta = !state.showHeaderMeta;
+    render();
+    return;
+  }
+
+  if (action === 'toggle-timers') {
+    state.showTimersDrawer = !state.showTimersDrawer;
+    render();
+    return;
+  }
+
+  if (action === 'toggle-block-grid') {
+    state.showBlockGrid = !state.showBlockGrid;
+    const slot = document.querySelector('#block-matrix-slot');
+    if (slot) slot.innerHTML = blockMatrixHtml();
+    return;
+  }
+
+  if (action === 'toggle-new-student') {
+    state.showNewStudentForm = !state.showNewStudentForm;
+    render();
+    return;
+  }
+
+  if (action === 'select-block') {
+    const blk = target.dataset.block;
+    state.selectedBlock = (state.selectedBlock === blk && blk !== 'ALL') ? 'ALL' : blk;
+    const matrixSlot = document.querySelector('#block-matrix-slot');
+    if (matrixSlot) matrixSlot.innerHTML = blockMatrixHtml();
+    const tableContainer = document.querySelector('#catalog-table-container');
+    if (tableContainer) tableContainer.innerHTML = catalogTableInnerHtml();
     return;
   }
 
@@ -2071,13 +1978,14 @@ async function handleAction(target) {
   if (action === 'clear-fault-query') {
     state.query = '';
     render();
-    document.querySelector('#fault-search-input')?.focus();
+    document.querySelector('#catalog-search-input')?.focus();
     return;
   }
 
   if (action === 'reset-fault-filters') {
     state.query = '';
     state.filter = 'ALL';
+    state.selectedBlock = 'ALL';
     render();
     return;
   }
@@ -2093,24 +2001,12 @@ async function handleAction(target) {
   if (action === 'delete-student') return removeStudent(target.dataset.id);
   if (action === 'view-student') return viewStudent(target.dataset.id);
   if (action === 'new-exam-student') return startSimulationForStudent(target.dataset.id);
-  if (action === 'new-quick-simulation') return startQuickSimulation();
-
-  if (action === 'unlink-student') {
-    if (!state.current) return;
-    state.current.studentId = null;
-    await persistCurrent();
-    render();
-    return;
-  }
 
   if (action === 'open-fault') {
     state.openFault = Number(target.dataset.id);
     render();
+    document.querySelector('#fault-note')?.focus();
     return;
-  }
-
-  if (action === 'quick-add-fault') {
-    return recordFault(target.dataset.id, { goSummary: false });
   }
 
   if (action === 'close-sheet') {
@@ -2119,25 +2015,26 @@ async function handleAction(target) {
     return;
   }
 
-  if (action === 'add-fault') {
-    const note = document.querySelector('#fault-note')?.value?.trim() || '';
-    return recordFault(target.dataset.id, { note, goSummary: true });
+  if (action === 'quick-add-fault') {
+    return recordFault(target.dataset.id);
+  }
+
+  if (action === 'decrement-fault') {
+    return decrementFaultByCatalogId(target.dataset.id);
   }
 
   if (action === 'add-fault-continue') {
     const note = document.querySelector('#fault-note')?.value?.trim() || '';
-    return recordFault(target.dataset.id, { note, goSummary: false });
+    return recordFault(target.dataset.id, { note });
   }
 
   if (action === 'remove-fault') {
     const index = Number(target.dataset.index);
-    if (!state.current || !Number.isInteger(index) || index < 0 || index >= state.current.faults.length) {
-      setUserAlert('No se pudo quitar la falta', 'La falta seleccionada ya no existe en esta prueba.', { code: 'FAULT_NOT_FOUND' });
-      return;
-    }
+    if (!state.current || !Number.isInteger(index) || index < 0 || index >= state.current.faults.length) return;
     state.current.faults.splice(index, 1);
     await persistCurrent();
-    render();
+    if (state.screen === 'sheet') updateSheetFaultPartials();
+    else render();
     return;
   }
 
@@ -2161,17 +2058,17 @@ async function handleAction(target) {
   if (action === 'duplicate') return duplicateSimulation(target.dataset.id);
 
   if (action === 'delete') {
-    const ok = window.confirm('¿Borrar definitivamente esta prueba del historial?');
-    if (!ok) return;
+    if (!window.confirm('¿Eliminar definitivamente esta prueba del archivo?')) return;
     const deletedId = target.dataset.id;
     await deleteSimulation(deletedId);
     if (state.current?.id === deletedId) {
-      state.current = null;
+      state.current = ensureSimulationShape(emptySimulation());
+      state.currentPersisted = false;
       await putSetting('currentSimulationId', null);
       syncTimerLoop();
     }
     await refreshData();
-    setToast('Prueba eliminada');
+    setToast('Registro eliminado');
     render();
     return;
   }
@@ -2180,7 +2077,7 @@ async function handleAction(target) {
     try {
       const warnings = validateSimulationForPdf(state.current);
       if (warnings.length) {
-        const ok = window.confirm(`${warnings.join(' ')} ¿Generar el informe PDF igualmente?`);
+        const ok = window.confirm(`${warnings.join(' ')} ¿Generar PDF igualmente?`);
         if (!ok) return;
       }
       state.pdfBusy = true;
@@ -2188,7 +2085,7 @@ async function handleAction(target) {
       await persistCurrent();
       const { downloadSimulationPdf } = await import('./pdf.js');
       downloadSimulationPdf(state.current, catalogById);
-      setToast('Informe PDF descargado');
+      setToast('PDF generado');
     } catch (error) {
       showUserError(error, 'pdf');
     } finally {
@@ -2205,10 +2102,10 @@ async function handleAction(target) {
 
   if (action === 'export-json') {
     try {
-      if (!state.current) throw userError('No hay prueba activa para exportar.', { title: 'Sin prueba activa', code: 'NO_CURRENT_SIMULATION' });
+      if (!state.current) throw userError('No hay hoja abierta.', { title: 'Sin hoja activa', code: 'NO_CURRENT_SIMULATION' });
       await persistCurrent();
-      downloadJson(state.current, `Simulacion_${state.current.date || localTodayIso()}.json`);
-      setToast('Prueba exportada');
+      downloadJson(state.current, `Hoja_PermisoB_${state.current.date || localTodayIso()}.json`);
+      setToast('Hoja exportada');
     } catch (error) {
       showUserError(error, 'export');
     }
@@ -2217,13 +2114,13 @@ async function handleAction(target) {
 
   if (action === 'export-all') {
     try {
-      if (state.current) await persistCurrent();
+      if (state.currentPersisted && state.current) await persistCurrent();
       await refreshData();
       downloadJson(
         { exportedAt: nowIso(), version: '0.6.0', students: state.students, simulations: state.history },
-        `Copia_PermisoB_${localTodayIso()}.json`
+        `Archivo_PermisoB_${localTodayIso()}.json`
       );
-      setToast('Copia completa descargada');
+      setToast('Archivo exportado');
     } catch (error) {
       showUserError(error, 'export');
     }
@@ -2231,39 +2128,30 @@ async function handleAction(target) {
   }
 
   if (action === 'finalize') {
-    if (!state.current) return;
     pauseAllTimers(state.current.timers);
     state.current.status = 'finalized';
     await persistCurrent();
     syncTimerLoop();
-    setToast('Prueba finalizada y tiempos detenidos');
+    setToast('Acta cerrada');
     render();
     return;
   }
 
   if (action === 'reopen') {
-    if (!state.current) return;
     state.current.status = 'draft';
     await persistCurrent();
-    setToast('Prueba reabierta para edición');
+    setToast('Acta reabierta');
     render();
     return;
   }
 
   if (action === 'clear-current') {
     if (!state.current?.faults?.length) return;
-    const ok = window.confirm('¿Eliminar todas las faltas anotadas en la prueba actual?');
-    if (!ok) return;
+    if (!window.confirm('¿Anular todas las faltas anotadas en la hoja actual?')) return;
     state.current.faults = [];
     await persistCurrent();
-    render();
-    return;
-  }
-
-  if (action === 'dismiss-install') {
-    state.installedHintDismissed = true;
-    await putSetting('installHintDismissed', true);
-    render();
+    if (state.screen === 'sheet') updateSheetFaultPartials();
+    else render();
   }
 }
 
@@ -2276,16 +2164,16 @@ app.addEventListener('input', (event) => {
 
   if (target.dataset.search === 'faults') {
     state.query = target.value;
-    const container = document.querySelector('#fault-blocks-container');
-    if (container) container.innerHTML = faultBlocksInnerHtml();
+    const container = document.querySelector('#catalog-table-container');
+    if (container) container.innerHTML = catalogTableInnerHtml();
   } else if (target.dataset.search === 'students') {
     state.studentQuery = target.value;
     const container = document.querySelector('#student-results-container');
-    if (container) container.innerHTML = filteredStudentsHtml();
+    if (container) container.innerHTML = studentsListInnerHtml();
   } else if (target.dataset.search === 'history') {
     state.historyQuery = target.value;
     const container = document.querySelector('#history-results-container');
-    if (container) container.innerHTML = filteredHistoryHtml();
+    if (container) container.innerHTML = filteredArchiveInnerHtml();
   }
 });
 
@@ -2300,8 +2188,7 @@ app.addEventListener('change', async (event) => {
       state.wakeLockEnabled = Boolean(target.checked);
       await putSetting('wakeLockEnabled', state.wakeLockEnabled);
       await syncWakeLock();
-      setToast(state.wakeLockEnabled ? 'Pantalla activa habilitada' : 'Pantalla activa desactivada');
-      if (state.screen === 'settings') render();
+      setToast(state.wakeLockEnabled ? 'Pantalla activa fijada' : 'Bloqueo normal de pantalla');
     }
   } catch (error) {
     showUserError(error, 'general');
@@ -2310,8 +2197,8 @@ app.addEventListener('change', async (event) => {
 
 app.addEventListener('toggle', (event) => {
   const details = event.target;
-  if (!(details instanceof HTMLDetailsElement) || !details.classList.contains('fault-group')) return;
-  if (state.query.trim() || state.filter !== 'ALL') return;
+  if (!(details instanceof HTMLDetailsElement) || !details.classList.contains('dgt-block')) return;
+  if (state.query.trim() || state.filter !== 'ALL' || state.selectedBlock !== 'ALL') return;
   const block = details.dataset.block;
   if (!block) return;
   if (details.open) state.openBlocks.add(block);
@@ -2335,9 +2222,7 @@ window.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    updateTimerDisplays();
-  }
+  if (document.visibilityState === 'visible') updateTimerDisplays();
   syncTimerLoop();
 });
 
@@ -2355,10 +2240,9 @@ async function initServiceWorker() {
 async function init() {
   const catalogErrors = validateCatalog(catalog);
   if (catalogErrors.length) {
-    setUserAlert('Revisa el catálogo de faltas', `Se han detectado ${catalogErrors.length} problemas en el catálogo.`, { code: 'CATALOG_WARNINGS' });
+    setUserAlert('Catálogo con avisos', `Se detectaron ${catalogErrors.length} avisos en el catálogo.`, { code: 'CATALOG_WARNINGS' });
   }
   await openDatabase();
-  state.installedHintDismissed = Boolean(await getSetting('installHintDismissed'));
   state.wakeLockEnabled = Boolean(await getSetting('wakeLockEnabled', false));
   await migrateExistingSimulationsToStudents();
   await refreshData();
@@ -2366,10 +2250,17 @@ async function init() {
   const currentId = await getSetting('currentSimulationId');
   if (currentId) {
     const saved = await getSimulation(currentId);
-    state.current = saved ? ensureSimulationShape(saved) : null;
+    if (saved) {
+      state.current = ensureSimulationShape(saved);
+      state.currentPersisted = true;
+    }
+  }
+  if (!state.current) {
+    state.current = ensureSimulationShape(emptySimulation());
+    state.currentPersisted = false;
   }
 
-  state.screen = 'home';
+  state.screen = 'sheet';
   render();
   initServiceWorker();
 }
@@ -2385,12 +2276,11 @@ window.addEventListener('unhandledrejection', (event) => {
 init().catch((error) => {
   const friendly = friendlyError(error, 'init');
   app.innerHTML = `
-    <main class="workspace startup-error">
-      <div class="alert-banner alert-error" role="alert">
-        <div class="alert-body">
-          <strong>${esc(friendly.title || 'No se pudo iniciar la aplicación')}</strong>
-          <p>${esc(friendly.message)}</p>
-          <span class="alert-code">Ref: ${esc(friendly.code || 'INIT_ERROR')}</span>
+    <main class="dgt-sheet startup-error">
+      <div class="dgt-alert" role="alert">
+        <div class="dgt-alert-text">
+          <strong>${esc(friendly.title || 'Error de inicio')}:</strong> ${esc(friendly.message)}
+          <span class="dgt-code">[${esc(friendly.code || 'INIT_ERROR')}]</span>
         </div>
       </div>
     </main>
